@@ -16,7 +16,7 @@ except ValueError:  # Using CPU if TPU is not available, also, using CPU, the ru
     strategy = tf.distribute.get_strategy()
     tf.config.run_functions_eagerly(True)
 
-# internal libs
+# internal libs 
 from common_setup_mu import CommonSetUp
 from dnn_mu import CNN_model_class
 from ml_model_mu import ML_model_class
