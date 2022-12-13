@@ -16,7 +16,7 @@ except ValueError:  # Using CPU if TPU is not available, also, using CPU, the ru
     strategy = tf.distribute.get_strategy()
     tf.config.run_functions_eagerly(True)
 
-# internal libs 
+# internal libs
 from common_setup_mu import CommonSetUp
 from dnn_mu import CNN_model_class
 from ml_model_mu import ML_model_class
@@ -37,31 +37,31 @@ if __name__ == '__main__':
     use_attention = 'yes'
 
     # training parameters
-    do_train = 'no'
-    save_model = 'no'
-    evaluate_model = 'no'
+    do_train = 'yes'
+    save_model = 'yes'
+    evaluate_model = 'yes'
     n_epochs = 10
     validation_freq = 1
 
     # settings of Sohrabi's and DBF beamformer (DBF and Sohrabi cannot be evaluated at the same time.
     # For testing DBF, N_b_rf should be set to N_b_a and N_u_rf should be set to N_u_a
     gather_data_for_runnig_Sohrabis_and_DBF_beamformer = 'no'
-    evaluate_sohrabi = 'yes'
+    evaluate_sohrabi = 'no'
     evaluate_DBF = 'no'
 
     # dateset
     is_data_segmented = 'no'
     create_DS_phase_noised = 'yes'
-    train_dataset_size = 4
+    train_dataset_size = 1024*2
     train_data_fragment_size = train_dataset_size
-    test_dataset_size = 32
+    test_dataset_size = 128
     test_data_fragment_size = test_dataset_size
-    eval_dataset_size = 32
+    eval_dataset_size = 128
     eval_data_fragment_size = eval_dataset_size
 
     # optimization parameters
-    L_rate_initial = 2e-5
-    BATCHSIZE = 32
+    L_rate_initial = 6e-5
+    BATCHSIZE = 8
     gradient_norm_clipper_pre = 1.
     gradient_norm_clipper_post = 1.
     ReduceLROnPlateau_decay_rate = 0.5
@@ -80,19 +80,19 @@ if __name__ == '__main__':
     subcarrier_strides_l2 = 1
     N_u_a_strides_l2 = 1
     N_b_a_strides_l2 = 1
-    n_common_layers = 15
-    n_D_and_RF_layers = 15
+    n_common_layers = 10
+    n_D_and_RF_layers = 10
     n_post_Tconv_processing = 2
-    n_llr_DNN_learner = 5
+    n_llr_DNN_learner =2
 
     # MIMO-OFDM
     mod_type = '16QAM'
     M = 16
-    N_s = 2
-    Nue = 1
-    N_b_a = 32
-    N_u_a = 32
-    N_b_rf = 2
+    N_s = 1
+    Nue = 4
+    N_b_a = 16
+    N_u_a = 4
+    N_b_rf = 8
     N_u_rf = 2
     N_b_o = N_b_rf
     N_u_o = N_u_rf
