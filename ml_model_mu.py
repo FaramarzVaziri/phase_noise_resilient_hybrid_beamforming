@@ -19,7 +19,6 @@ class ML_model_class(tf.keras.Model):
         self.demapper = demapper
         self.equalizer = equalizer
         self.setup = setup
-        self.rescaling = 1#self.setup.Nue * self.setup.N_s * np.sqrt(2.) # for Soh, remove
 
     def compile(self, optimizer, loss, rx_calc, activation_TX, activation_RX,
                 bmi_in_presence_of_phase_noise, capacity_in_presence_of_phase_noise):
@@ -91,7 +90,7 @@ class ML_model_class(tf.keras.Model):
                        y_symbols_k0]
             y_symbols_k0_equalized, noise_effective_k0 = self.equalizer(inputs3)
             noise_effective_k0_reshaped = tf.expand_dims(noise_effective_k0, axis=5)
-            llr_k0 = self.demapper([y_symbols_k0_equalized / (self.setup.Nue * self.setup.N_s * np.sqrt(2.)),
+            llr_k0 = self.demapper([y_symbols_k0_equalized / (self.setup.Nue * self.setup.N_s),
                                     noise_effective_k0_reshaped])
             bce_loss_k0 = self.loss([self.tx_bits_train[:, :, :, 0, :, :, :], llr_k0])
         trainables = self.CNN_transceiver.trainable_weights
@@ -144,7 +143,7 @@ class ML_model_class(tf.keras.Model):
                    y_symbols_k0]
         y_symbols_k0_equalized, noise_effective_k0 = self.equalizer(inputs3)
         noise_effective_k0_reshaped = tf.expand_dims(noise_effective_k0, axis=5)
-        llr_k0 = self.demapper([y_symbols_k0_equalized / (self.setup.Nue * self.setup.N_s * np.sqrt(2.)), noise_effective_k0_reshaped])
+        llr_k0 = self.demapper([y_symbols_k0_equalized / (self.setup.Nue * self.setup.N_s), noise_effective_k0_reshaped])
         bce_loss = self.loss([self.tx_bits_train[:, :, :, 0, :, :, :], llr_k0])
         loss_metric_test.update_state(bce_loss)
 
@@ -180,7 +179,7 @@ class ML_model_class(tf.keras.Model):
         y_symbols_k0_equalized_, noise_effective_k0_ = self.equalizer(inputs6)
         noise_effective_k0_reshaped = tf.expand_dims(noise_effective_k0_, axis=5)
         llr__k0 = self.demapper(
-            [y_symbols_k0_equalized_ / (self.setup.Nue * self.setup.N_s * np.sqrt(2.)), noise_effective_k0_reshaped])  # self.sigma2 / (2 * np.pi)])
+            [y_symbols_k0_equalized_ / (self.setup.Nue * self.setup.N_s), noise_effective_k0_reshaped])  # self.sigma2 / (2 * np.pi)])
         bmi_avg, _ = self.bmi_in_presence_of_phase_noise([self.tx_bits_train[:, :, :, 0, :, :, :], llr__k0])
         capacity_metric_test.update_state(bmi_avg)
         return {"L2_test": loss_metric_test.result(),
@@ -236,7 +235,7 @@ class ML_model_class(tf.keras.Model):
             y_symbols_k0_equalized, noise_effective_k0 = self.equalizer(inputs3)
             noise_effective_k0_reshaped = tf.expand_dims(noise_effective_k0, axis=5)
             llr_k0 = self.demapper(
-                [y_symbols_k0_equalized / (self.setup.Nue * self.setup.N_s * np.sqrt(2.)), noise_effective_k0_reshaped])  # self.sigma2 / (2 * np.pi)])
+                [y_symbols_k0_equalized / (self.setup.Nue * self.setup.N_s), noise_effective_k0_reshaped])  # self.sigma2 / (2 * np.pi)])
 
             inputs1 = [
                 tx_bits[batch_number * self.setup.BATCHSIZE: (batch_number + 1) * self.setup.BATCHSIZE, :, :, 0, :, :,
@@ -249,7 +248,7 @@ class ML_model_class(tf.keras.Model):
             else:
                 air_samples_k0 = tf.concat([air_samples_k0, bmi], axis=0)
 
-        return air_samples_k0, y_symbols_k0_equalized / self.rescaling
+        return air_samples_k0, y_symbols_k0_equalized / (self.setup.Nue * self.setup.N_s)
 
     @tf.function
     def evaluation_of_Sohrabis_beamformer(self, tx_bits, tx_symbols):
