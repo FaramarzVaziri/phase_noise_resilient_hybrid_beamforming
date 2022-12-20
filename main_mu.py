@@ -29,7 +29,7 @@ from loss_phase_noise_free import Loss_phase_noise_free
 if __name__ == '__main__':
     # Common setup (do not play with this!)
     use_test_data_for_train = False
-    load_trained_best_model = 'no'
+    load_trained_best_model = 'yes'
     llr_learnable = 'no'
     choise_of_loss = "bmi"
     rx_refresher = 'no'
@@ -37,8 +37,8 @@ if __name__ == '__main__':
     use_attention = 'yes'
 
     # training parameters
-    do_train = 'yes'
-    save_model = 'yes'
+    do_train = 'no'
+    save_model = 'no'
     evaluate_model = 'yes'
     n_epochs = 10
     validation_freq = 1
@@ -54,14 +54,14 @@ if __name__ == '__main__':
     create_DS_phase_noised = 'yes'
     train_dataset_size = 1024*2
     train_data_fragment_size = train_dataset_size
-    test_dataset_size = 128
+    test_dataset_size = 256
     test_data_fragment_size = test_dataset_size
-    eval_dataset_size = 128
+    eval_dataset_size = 256
     eval_data_fragment_size = eval_dataset_size
 
     # optimization parameters
     L_rate_initial = 6e-5
-    BATCHSIZE = 8
+    BATCHSIZE = 256
     gradient_norm_clipper_pre = 1.
     gradient_norm_clipper_post = 1.
     ReduceLROnPlateau_decay_rate = 0.5
