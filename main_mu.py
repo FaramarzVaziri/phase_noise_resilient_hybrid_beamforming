@@ -39,29 +39,29 @@ if __name__ == '__main__':
     # training parameters
     do_train = 'no'
     save_model = 'no'
-    evaluate_model = 'yes'
+    evaluate_model = 'no'
     n_epochs = 10
     validation_freq = 1
 
     # settings of Sohrabi's and DBF beamformer (DBF and Sohrabi cannot be evaluated at the same time.
     # For testing DBF, N_b_rf should be set to N_b_a and N_u_rf should be set to N_u_a
     gather_data_for_runnig_Sohrabis_and_DBF_beamformer = 'no'
-    evaluate_sohrabi = 'no'
+    evaluate_sohrabi = 'yes'
     evaluate_DBF = 'no'
 
     # dateset
     is_data_segmented = 'no'
     create_DS_phase_noised = 'yes'
-    train_dataset_size = 1024*2
+    train_dataset_size = 4
     train_data_fragment_size = train_dataset_size
-    test_dataset_size = 256
+    test_dataset_size = 128
     test_data_fragment_size = test_dataset_size
-    eval_dataset_size = 256
+    eval_dataset_size = 128
     eval_data_fragment_size = eval_dataset_size
 
     # optimization parameters
     L_rate_initial = 6e-5
-    BATCHSIZE = 256
+    BATCHSIZE = 128
     gradient_norm_clipper_pre = 1.
     gradient_norm_clipper_post = 1.
     ReduceLROnPlateau_decay_rate = 0.5
@@ -89,11 +89,11 @@ if __name__ == '__main__':
     mod_type = '16QAM'
     M = 16
     N_s = 1
-    Nue = 4
+    Nue = 1
     N_b_a = 16
-    N_u_a = 4
+    N_u_a = 16
     N_b_rf = 8
-    N_u_rf = 2
+    N_u_rf = 8
     N_b_o = N_b_rf
     N_u_o = N_u_rf
     K = 1024
@@ -103,6 +103,8 @@ if __name__ == '__main__':
     SNR = 20.
     P = 100.
     sigma2 = P / (10 ** (SNR / 10.))
+    apply_channel_est_error = True
+    channel_est_err_mse_per_element_dB = -30.
 
     # Phase noise parameters
     CSIRSPeriod = 20 * 14  # 20 subframes, 14 symbols per subframe
@@ -182,6 +184,8 @@ if __name__ == '__main__':
                         , SNR
                         , P
                         , sigma2
+                        , apply_channel_est_error
+                        , channel_est_err_mse_per_element_dB
                         , CSIRSPeriod
                         , f_0
                         , L

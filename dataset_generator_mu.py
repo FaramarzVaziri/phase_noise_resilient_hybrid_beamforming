@@ -218,7 +218,24 @@ class ChannelOps(PhaseNoiseGen):
                                     fn_output_signature=tf.complex64,
                                     parallel_iterations=round(
                                         self.setup.CSIRSPeriod * self.setup.sampling_ratio_time_domain_keep))
+        if self.setup.apply_channel_est_error == True:
+            H_tilde_complex = self.apply_channel_est_error_per_element(H_tilde_complex)
         return H_tilde_complex
+
+    @tf.function
+    def apply_channel_est_error_per_element(self, H_tilde_complex):
+        # calculate the magnitude of H_tilde_complex
+        H_tilde_complex_mag = tf.reduce_mean(tf.math.abs(H_tilde_complex))
+        noise_std = H_tilde_complex_mag * 10 ** (self.setup.channel_est_err_mse_per_element_dB / 20)
+        noise = tf.complex(tf.sqrt(0.5) * tf.random.normal(shape=tf.shape(H_tilde_complex),
+                                                           mean=0.0,
+                                                           stddev=noise_std,
+                                                           dtype=tf.dtypes.float32),
+                           tf.sqrt(0.5) * tf.random.normal(shape=tf.shape(H_tilde_complex),
+                                                           mean=0.0,
+                                                           stddev=noise_std,
+                                                           dtype=tf.dtypes.float32))
+        return H_tilde_complex + noise
 
 
 class DatasetGenerator(ChannelOps, PhaseNoiseGen):
@@ -285,7 +302,7 @@ class DatasetGenerator(ChannelOps, PhaseNoiseGen):
 
             phi_adjusted = tf.reshape(phi_adjusted, shape=[self.data_fragment_size,
                                                            (
-                                                                       self.setup.N_b_rf + self.setup.Nue * self.setup.N_u_rf) * self.setup.CSIRSPeriod * self.setup.K])
+                                                                   self.setup.N_b_rf + self.setup.Nue * self.setup.N_u_rf) * self.setup.CSIRSPeriod * self.setup.K])
         DS = tf.data.Dataset.from_tensor_slices(phi_adjusted)
         return DS
 
@@ -349,14 +366,12 @@ class DatasetGenerator(ChannelOps, PhaseNoiseGen):
         H_tilde = tf.stack([tf.math.real(H_tilde_complex), tf.math.imag(H_tilde_complex)], axis=6)
         return H_complex, H_tilde, Lambda_B, Lambda_U
 
-
     def data_generator_for_running_Sohrabis_beamformer(self):
         H_complex, H_tilde, Lambda_B, Lambda_U = self.data_generator_for_evaluation_of_proposed_beamformer(
             0)  # todo: this is why test dataset should remain the same length as BATCHSIZE. To make it capable of using smaller batchsizes we need to change it to a for loop like other cases, instead of (0)
         H_tilde_complex = tf.complex(H_tilde[:, :, :, :, :, :, 0], H_tilde[:, :, :, :, :, :, 1])
         csi_tx = tf.squeeze(H_tilde_complex[:, 0, :, :, :, :])
         return H_complex, csi_tx, H_tilde, Lambda_B, Lambda_U
-
 
     def data_generator_for_evaluation_of_Sohrabis_beamformer(self, batch_number):
         mat_contents = sio.loadmat(self.setup.dataset_for_testing_sohrabi)
@@ -409,15 +424,15 @@ class DatasetGenerator(ChannelOps, PhaseNoiseGen):
                    :, :]
         # Lambda_B, Lambda_U = self.phase_noise_dataset_generator()
         V_RF_optimized = (mat_contents['V_RF_optimized'])[
-                                 batch_number * self.setup.BATCHSIZE: (batch_number + 1) * self.setup.BATCHSIZE, :, :]
+                         batch_number * self.setup.BATCHSIZE: (batch_number + 1) * self.setup.BATCHSIZE, :, :]
         W_RF_optimized = (mat_contents['W_RF_optimized'])[
-                                 batch_number * self.setup.BATCHSIZE: (batch_number + 1) * self.setup.BATCHSIZE, :, :]
+                         batch_number * self.setup.BATCHSIZE: (batch_number + 1) * self.setup.BATCHSIZE, :, :]
 
         # The following data require permutation to bring k (subcarrier) to the second dimension
         V_D_optimized = np.transpose(mat_contents['V_D_optimized'], axes=[0, 3, 1, 2])[
-                                batch_number * self.setup.BATCHSIZE: (batch_number + 1) * self.setup.BATCHSIZE, :, :, :]
+                        batch_number * self.setup.BATCHSIZE: (batch_number + 1) * self.setup.BATCHSIZE, :, :, :]
         W_D_optimized = np.transpose(mat_contents['W_D_optimized'], axes=[0, 3, 1, 2])[
-                                batch_number * self.setup.BATCHSIZE: (batch_number + 1) * self.setup.BATCHSIZE, :, :, :]
+                        batch_number * self.setup.BATCHSIZE: (batch_number + 1) * self.setup.BATCHSIZE, :, :, :]
 
         return tf.cast(H_complex,
                        tf.complex64), H_tilde, Lambda_B, Lambda_U, V_RF_optimized, \

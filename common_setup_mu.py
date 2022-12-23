@@ -1,5 +1,6 @@
 import math
 
+
 class CommonSetUp():
     def __init__(self,
                  use_test_data_for_train
@@ -63,6 +64,8 @@ class CommonSetUp():
                  , SNR
                  , P
                  , sigma2
+                 , apply_channel_est_error
+                 , channel_est_err_mse_per_element_dB
                  , CSIRSPeriod
                  , f_0
                  , L
@@ -145,6 +148,8 @@ class CommonSetUp():
         self.SNR = SNR
         self.P = P
         self.sigma2 = sigma2
+        self.apply_channel_est_error = apply_channel_est_error
+        self.channel_est_err_mse_per_element_dB = channel_est_err_mse_per_element_dB
         self.CSIRSPeriod = CSIRSPeriod
         self.f_0 = f_0
         self.L = L
@@ -161,6 +166,12 @@ class CommonSetUp():
             self.N_u_a) + "_N_b_rf_" + str(self.N_b_rf) + "_N_u_rf_" + str(self.N_u_rf) + "_N_s_" + str(
             self.N_s) + "_L_" + str(int(self.L)) + "_SNR_" + str(int(self.SNR)) + "_K_" + str(
             self.K) + "_K_prime_" + str(self.K_prime) + "_M_" + str(self.M) + "_phase_noise_recorded_" + str(
+            self.phase_noise_recorded) + "_" + str(self.CLO_or_ILO) + "_ch_est_err_var_dB_" + str(int(self.channel_est_err_mse_per_element_dB))
+
+        self.model_ID = "N_ue_" + str(self.Nue) + "_N_b_a_" + str(self.N_b_a) + "_N_u_a_" + str(
+            self.N_u_a) + "_N_b_rf_" + str(self.N_b_rf) + "_N_u_rf_" + str(self.N_u_rf) + "_N_s_" + str(
+            self.N_s) + "_L_" + str(int(self.L)) + "_SNR_" + str(int(self.SNR)) + "_K_" + str(
+            self.K) + "_K_prime_" + str(self.K_prime) + "_M_" + str(self.M) + "_phase_noise_recorded_" + str(
             self.phase_noise_recorded) + "_" + str(self.CLO_or_ILO)
 
         # dateset
@@ -173,12 +184,12 @@ class CommonSetUp():
             self.Nue) + "_N_b_a_" + str(self.N_b_a) + "_N_u_a_" + str(self.N_u_a) + "_N_b_rf_" + str(
             self.N_b_rf) + "_N_u_rf_" + str(self.N_u_rf) + "_N_s_" + str(
             self.N_s) + "_L_" + str(int(self.L)) + "_SNR_" + str(int(self.SNR)) + "_K_" + str(
-            self.K) + "_K_prime_" + str(self.K_prime) + ".mat"
+            self.K) + "_K_prime_" + str(self.K_prime) + "_ch_est_err_var_dB_" + str(int(self.channel_est_err_mse_per_element_dB)) + ".mat"
         self.dataset_for_testing_sohrabi = "datasets/DS_for_testing_Sohrabi_" + "N_ue_" + str(
             self.Nue) + "_N_b_a_" + str(self.N_b_a) + "_N_u_a_" + str(self.N_u_a) + "_N_b_rf_" + str(
             self.N_b_rf) + "_N_u_rf_" + str(self.N_u_rf) + "_N_s_" + str(
             self.N_s) + "_L_" + str(int(self.L)) + "_SNR_" + str(int(self.SNR)) + "_K_" + str(
-            self.K) + "_K_prime_" + str(self.K_prime) + ".mat"
+            self.K) + "_K_prime_" + str(self.K_prime) + "_ch_est_err_var_dB_" + str(int(self.channel_est_err_mse_per_element_dB)) + ".mat"
         self.dataset_for_testing_DBF = self.dataset_for_testing_sohrabi
 
         # simulation results
@@ -186,7 +197,7 @@ class CommonSetUp():
         self.eval_file_name_sohrabi = "results/eval_Sohrabi_" + self.simulation_ID + ".mat"
         self.eval_file_name_DBF = "results/eval_DBF_" + self.simulation_ID + ".mat"
 
-        self.address_of_best_model = "models/SE_ResNet_" + self.simulation_ID + ".h5"
+        self.address_of_best_model = "models/SE_ResNet_" + self.model_ID + ".h5"
 
         self.truncation_ratio_keep = truncation_ratio_keep
         self.sampling_ratio_time_domain_keep = sampling_ratio_time_domain_keep
