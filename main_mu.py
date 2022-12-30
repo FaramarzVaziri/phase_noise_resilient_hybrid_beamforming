@@ -27,32 +27,38 @@ from the_clock import Timer_class
 from loss_phase_noise_free import Loss_phase_noise_free
 
 if __name__ == '__main__':
-    # Common setup (do not play with this!)
+    # Control panel 1 (danger zone!) ----------------------------------
     use_test_data_for_train = False
-    load_trained_best_model = 'yes'
-    llr_learnable = 'no'
+    llr_learnable = 'no'  # feature not implemented
     choise_of_loss = "bmi"
-    rx_refresher = 'no'
+    rx_refresher = 'no'  # feature not implemented
     equalizer_type = 'LMMSE'
     use_attention = 'yes'
+    truncation_ratio_keep = 1  # bypassed
+    sampling_ratio_subcarrier_domain_keep = 1  # bypassed
+    GMI_approx = 'no' # feature not implemented
+    K_prime_size_test = 'no' # bypassed
 
+
+
+    # Control panel 2 (for normal use) ----------------------------------
     # training parameters
-    do_train = 'no'
-    save_model = 'no'
+    load_trained_best_model = 'yes'
+    do_train = 'yes'
+    save_model = 'yes'
     evaluate_model = 'no'
     n_epochs = 10
     validation_freq = 1
 
-    # settings of Sohrabi's and DBF beamformer (DBF and Sohrabi cannot be evaluated at the same time.
-    # For testing DBF, N_b_rf should be set to N_b_a and N_u_rf should be set to N_u_a
+    # Benchmark methods
     gather_data_for_runnig_Sohrabis_and_DBF_beamformer = 'no'
-    evaluate_sohrabi = 'yes'
+    evaluate_sohrabi = 'no'
     evaluate_DBF = 'no'
 
     # dateset
     is_data_segmented = 'no'
     create_DS_phase_noised = 'yes'
-    train_dataset_size = 4
+    train_dataset_size = 1024
     train_data_fragment_size = train_dataset_size
     test_dataset_size = 128
     test_data_fragment_size = test_dataset_size
@@ -61,7 +67,7 @@ if __name__ == '__main__':
 
     # optimization parameters
     L_rate_initial = 6e-5
-    BATCHSIZE = 128
+    BATCHSIZE = 8
     gradient_norm_clipper_pre = 1.
     gradient_norm_clipper_post = 1.
     ReduceLROnPlateau_decay_rate = 0.5
@@ -83,11 +89,17 @@ if __name__ == '__main__':
     n_common_layers = 10
     n_D_and_RF_layers = 10
     n_post_Tconv_processing = 2
-    n_llr_DNN_learner =2
+    n_llr_DNN_learner =2  # not used
 
     # MIMO-OFDM
     mod_type = '16QAM'
-    M = 16
+    if mod_type == 'QPSK':
+        M = 4
+    elif mod_type == '16QAM':
+        M = 16
+    elif mod_type == '64QAM':
+        M = 64
+
     N_s = 1
     Nue = 1
     N_b_a = 16
@@ -104,7 +116,7 @@ if __name__ == '__main__':
     P = 100.
     sigma2 = P / (10 ** (SNR / 10.))
     apply_channel_est_error = True
-    channel_est_err_mse_per_element_dB = -30.
+    channel_est_err_mse_per_element_dB = -10.
 
     # Phase noise parameters
     CSIRSPeriod = 20 * 14  # 20 subframes, 14 symbols per subframe
@@ -115,13 +127,15 @@ if __name__ == '__main__':
     CLO_or_ILO = 'ILO'
 
     # simulation parameters
-    truncation_ratio_keep = 1
+
     sampling_ratio_time_domain_keep = 5 / CSIRSPeriod
     sampling_ratio_time_domain_keep_capacity_metric = sampling_ratio_time_domain_keep
-    sampling_ratio_subcarrier_domain_keep = 1
-    GMI_approx = 'no'
-    K_prime_size_test = 'no'
     influencial_subcarriers_set_size = 4
+
+    # end of control panel ----------------------------------
+
+
+
 
     setup = CommonSetUp(use_test_data_for_train
                         , load_trained_best_model
