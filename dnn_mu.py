@@ -1284,8 +1284,13 @@ class CNN_model_class():
         if self.setup.Nue == 1:
             AP_V_D_branch_end = MaxPooling3D(pool_size=(1, 1, round(current_size_V_dim_Nba / self.setup.N_s)))
         else:
-            AP_V_D_branch_end = MaxPooling3D(
+            try:
+                AP_V_D_branch_end = MaxPooling3D(
                 pool_size=(1, round(current_size_V_dim_Nba / self.setup.N_b_rf), round(current_size_V_dim_Nba / self.setup.N_s)))
+            except:
+                AP_V_D_branch_end = MaxPooling3D(
+                    pool_size=(1, 1,
+                               round(current_size_V_dim_Nba / self.setup.N_s)))
 
         reshaper_V_D = Reshape(target_shape=[self.setup.K_prime, self.setup.N_b_rf, self.setup.N_s, -1])
         for i in range(1, self.setup.n_post_Tconv_processing - 1, 1):
@@ -1563,7 +1568,7 @@ class CNN_model_class():
             vd = Tconv_V_D_1(vd)
             vd = AdaSE_ResNet_block_V_D_branch_post_Tconv_processing[0](vd, ns)
             vd = Tconv_V_D_2(vd)
-            vd = AP_V_D_branch_end(vd)
+            # vd = AP_V_D_branch_end(vd)
             vd = reshaper_V_D(vd)
             for i in range(1, self.setup.n_post_Tconv_processing, 1):
                 vd = AdaSE_ResNet_block_V_D_branch_post_Tconv_processing[i](vd, ns)

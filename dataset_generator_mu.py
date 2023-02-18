@@ -370,11 +370,94 @@ class DatasetGenerator(ChannelOps, PhaseNoiseGen):
         H_complex, H_tilde, Lambda_B, Lambda_U = self.data_generator_for_evaluation_of_proposed_beamformer(
             0)  # todo: this is why test dataset should remain the same length as BATCHSIZE. To make it capable of using smaller batchsizes we need to change it to a for loop like other cases, instead of (0)
         H_tilde_complex = tf.complex(H_tilde[:, :, :, :, :, :, 0], H_tilde[:, :, :, :, :, :, 1])
-        csi_tx = tf.squeeze(H_tilde_complex[:, 0, :, :, :, :])
+        csi_tx = H_tilde_complex[:, 0, :, :, :, :]
         return H_complex, csi_tx, H_tilde, Lambda_B, Lambda_U
 
-    def data_generator_for_evaluation_of_Sohrabis_beamformer(self, batch_number):
-        mat_contents = sio.loadmat(self.setup.dataset_for_testing_sohrabi)
+    def data_generator_for_evaluation_of_sohrabi_beamformer(self, batch_number):
+        if self.setup.Nue == 1:
+            mat_contents = sio.loadmat(self.setup.dataset_for_testing_benchmark)
+
+            H_complex = (mat_contents['H'])[
+                        batch_number * self.setup.BATCHSIZE: (batch_number + 1) * self.setup.BATCHSIZE,
+                        :, :, :, :]
+            H_tilde = (mat_contents['H_tilde'])[
+                      batch_number * self.setup.BATCHSIZE: (batch_number + 1) * self.setup.BATCHSIZE, :, :, :,
+                      :]
+            Lambda_B = (mat_contents['Lambda_B'])[
+                       batch_number * self.setup.BATCHSIZE: (batch_number + 1) * self.setup.BATCHSIZE, :, :,
+                       :, :]
+            Lambda_U = (mat_contents['Lambda_U'])[
+                       batch_number * self.setup.BATCHSIZE: (batch_number + 1) * self.setup.BATCHSIZE, :, :,
+                       :,
+                       :, :]
+
+            V_RF_benchmark_optimized = (mat_contents['V_RF_benchmark_optimized'])[
+                                       batch_number * self.setup.BATCHSIZE: (batch_number + 1) * self.setup.BATCHSIZE,
+                                       :, :]
+            W_RF_benchmark_optimized = (mat_contents['W_RF_benchmark_optimized'])[
+                                       batch_number * self.setup.BATCHSIZE: (batch_number + 1) * self.setup.BATCHSIZE,
+                                       :, :]
+
+            # The following data require permutation to bring k (subcarrier) to the second dimension
+            V_D_benchmark_optimized = np.transpose(mat_contents['V_D_benchmark_optimized'], axes=[0, 3, 1, 2])[
+                                      batch_number * self.setup.BATCHSIZE: (batch_number + 1) * self.setup.BATCHSIZE, :,
+                                      :, :]
+            W_D_benchmark_optimized = np.transpose(mat_contents['W_D_benchmark_optimized'], axes=[0, 3, 1, 2])[
+                                      batch_number * self.setup.BATCHSIZE: (batch_number + 1) * self.setup.BATCHSIZE, :,
+                                      :, :]
+
+            return tf.cast(H_complex,
+                           tf.complex64), H_tilde, Lambda_B, Lambda_U, V_RF_benchmark_optimized, \
+                   tf.reshape(W_RF_benchmark_optimized, [-1, self.setup.Nue, self.setup.N_u_a, self.setup.N_u_rf]), \
+                   tf.reshape(V_D_benchmark_optimized,
+                              [-1, self.setup.Nue, self.setup.K_prime, self.setup.N_b_rf, self.setup.N_s]) \
+                , tf.reshape(W_D_benchmark_optimized, [-1, self.setup.Nue, self.setup.K_prime, self.setup.N_u_rf,
+                                                       self.setup.N_s])  # , tx_bits, tx_symbols
+        else:
+            mat_contents = sio.loadmat(self.setup.dataset_for_testing_benchmark)
+
+            H_complex = (mat_contents['H'])[
+                        batch_number * self.setup.BATCHSIZE: (batch_number + 1) * self.setup.BATCHSIZE,
+                        :, :, :, :]
+            H_tilde = (mat_contents['H_tilde'])[
+                      batch_number * self.setup.BATCHSIZE: (batch_number + 1) * self.setup.BATCHSIZE, :, :, :, :]
+            Lambda_B = (mat_contents['Lambda_B'])[
+                       batch_number * self.setup.BATCHSIZE: (batch_number + 1) * self.setup.BATCHSIZE, :, :, :, :]
+            Lambda_U = (mat_contents['Lambda_U'])[
+                       batch_number * self.setup.BATCHSIZE: (batch_number + 1) * self.setup.BATCHSIZE, :, :, :]
+
+            V_RF_benchmark_optimized = mat_contents['V_RF_benchmark_optimized'][
+                                       batch_number * self.setup.BATCHSIZE: (batch_number + 1) * self.setup.BATCHSIZE,
+                                       :, :]
+            W_RF_benchmark_optimized = tf.ones(
+                [self.setup.BATCHSIZE, self.setup.Nue, self.setup.N_u_a, self.setup.N_u_rf], dtype=tf.complex64)
+
+            V_D_benchmark_optimized = tf.expand_dims(mat_contents['V_D_benchmark_optimized'][
+                                                     batch_number * self.setup.BATCHSIZE: (
+                                                                                                  batch_number + 1) * self.setup.BATCHSIZE,
+                                                     :,
+                                                     :, :], axis=4)
+            W_D_benchmark_optimized = tf.ones(
+                [self.setup.BATCHSIZE, self.setup.Nue, self.setup.K_prime, self.setup.N_u_rf, self.setup.N_s],
+                dtype=tf.complex64)
+
+            return tf.cast(H_complex,
+                           tf.complex64), H_tilde, Lambda_B, \
+                   tf.reshape(Lambda_U, [-1,
+                                         round(self.setup.CSIRSPeriod * self.setup.sampling_ratio_time_domain_keep),
+                                         self.setup.Nue,
+                                         self.setup.K_prime,
+                                         self.setup.N_u_a,
+                                         self.setup.N_u_a]), \
+                   V_RF_benchmark_optimized, \
+                   tf.reshape(W_RF_benchmark_optimized, [-1, self.setup.Nue, self.setup.N_u_a, self.setup.N_u_rf]), \
+                   tf.reshape(V_D_benchmark_optimized,
+                              [-1, self.setup.Nue, self.setup.K_prime, self.setup.N_b_rf, self.setup.N_s]) \
+                , tf.reshape(W_D_benchmark_optimized, [-1, self.setup.Nue, self.setup.K_prime, self.setup.N_u_rf,
+                                                       self.setup.N_s])  # , tx_bits, tx_symbols
+
+    def data_generator_for_evaluation_of_benchmark_beamformer(self, batch_number):
+        mat_contents = sio.loadmat(self.setup.dataset_for_testing_benchmark)
 
         H_complex = (mat_contents['H'])[batch_number * self.setup.BATCHSIZE: (batch_number + 1) * self.setup.BATCHSIZE,
                     :, :, :, :]
@@ -385,27 +468,43 @@ class DatasetGenerator(ChannelOps, PhaseNoiseGen):
                    batch_number * self.setup.BATCHSIZE: (batch_number + 1) * self.setup.BATCHSIZE, :, :,
                    :, :]
         Lambda_U = (mat_contents['Lambda_U'])[
-                   batch_number * self.setup.BATCHSIZE: (batch_number + 1) * self.setup.BATCHSIZE, :, :,
-                   :,
-                   :, :]
+                   batch_number * self.setup.BATCHSIZE: (batch_number + 1) * self.setup.BATCHSIZE, :, :, :]
 
-        V_RF_Sohrabi_optimized = (mat_contents['V_RF_Sohrabi_optimized'])[
-                                 batch_number * self.setup.BATCHSIZE: (batch_number + 1) * self.setup.BATCHSIZE, :, :]
-        W_RF_Sohrabi_optimized = (mat_contents['W_RF_Sohrabi_optimized'])[
-                                 batch_number * self.setup.BATCHSIZE: (batch_number + 1) * self.setup.BATCHSIZE, :, :]
+        V_RF_benchmark_optimized = (mat_contents['V_RF_benchmark_optimized'])[
+                                   batch_number * self.setup.BATCHSIZE: (batch_number + 1) * self.setup.BATCHSIZE, :, :]
+        W_RF_benchmark_optimized = (mat_contents['W_RF_benchmark_optimized'])[
+                                   batch_number * self.setup.BATCHSIZE: (batch_number + 1) * self.setup.BATCHSIZE, :, :,
+                                   :]
 
         # The following data require permutation to bring k (subcarrier) to the second dimension
-        V_D_Sohrabi_optimized = np.transpose(mat_contents['V_D_Sohrabi_optimized'], axes=[0, 3, 1, 2])[
-                                batch_number * self.setup.BATCHSIZE: (batch_number + 1) * self.setup.BATCHSIZE, :, :, :]
-        W_D_Sohrabi_optimized = np.transpose(mat_contents['W_D_Sohrabi_optimized'], axes=[0, 3, 1, 2])[
-                                batch_number * self.setup.BATCHSIZE: (batch_number + 1) * self.setup.BATCHSIZE, :, :, :]
-        return tf.cast(H_complex,
-                       tf.complex64), H_tilde, Lambda_B, Lambda_U, V_RF_Sohrabi_optimized, \
-               tf.reshape(W_RF_Sohrabi_optimized, [-1, self.setup.Nue, self.setup.N_u_a, self.setup.N_u_rf]), \
-               tf.reshape(V_D_Sohrabi_optimized,
-                          [-1, self.setup.Nue, self.setup.K_prime, self.setup.N_b_rf, self.setup.N_s]) \
-            , tf.reshape(W_D_Sohrabi_optimized, [-1, self.setup.Nue, self.setup.K_prime, self.setup.N_u_rf,
-                                                 self.setup.N_s])  # , tx_bits, tx_symbols
+        V_D_benchmark_optimized = mat_contents['V_D_benchmark_optimized'][
+                                  batch_number * self.setup.BATCHSIZE: (batch_number + 1) * self.setup.BATCHSIZE, :, :,
+                                  :, :]
+        W_D_benchmark_optimized = mat_contents['W_D_benchmark_optimized'][
+                                  batch_number * self.setup.BATCHSIZE: (batch_number + 1) * self.setup.BATCHSIZE, :, :,
+                                  :, :]
+        # todo: the if
+        # if self.setup.benchmark == 'Zilli':
+        V_D_benchmark_optimized = np.transpose(V_D_benchmark_optimized,
+                                                   [0, 4, 3, 1, 2]);  # n Nrf Ns K Nue -> n Nue K Nrf Ns
+        W_D_benchmark_optimized = np.transpose(W_D_benchmark_optimized,
+                                                   [0, 4, 3, 1, 2]);  # n Nrf Ns K Nue -> n Nue K Nrf Ns
+        W_RF_benchmark_optimized = np.transpose(W_RF_benchmark_optimized,
+                                                    [0, 3, 1, 2]);  # n Na Nrf Nue -> n Nue Na Nrf
+
+        return tf.cast(H_complex, tf.complex64),\
+               H_tilde,\
+               Lambda_B,\
+               tf.reshape(Lambda_U,
+                          [-1, round(self.setup.CSIRSPeriod * self.setup.sampling_ratio_time_domain_keep),
+                           self.setup.Nue,
+                           self.setup.K_prime,
+                           self.setup.N_u_a,
+                           self.setup.N_u_a]),\
+               V_RF_benchmark_optimized, \
+               tf.reshape(W_RF_benchmark_optimized, [-1, self.setup.Nue, self.setup.N_u_a, self.setup.N_u_rf]), \
+               tf.reshape(V_D_benchmark_optimized, [-1, self.setup.Nue, self.setup.K_prime, self.setup.N_b_rf, self.setup.N_s]),\
+               tf.reshape(W_D_benchmark_optimized, [-1, self.setup.Nue, self.setup.K_prime, self.setup.N_u_rf, self.setup.N_s])  # , tx_bits, tx_symbols
 
     # @tf.function
     def data_generator_for_evaluation_of_digital_beamformer(self, batch_number):

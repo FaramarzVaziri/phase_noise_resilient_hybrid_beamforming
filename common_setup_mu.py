@@ -15,8 +15,9 @@ class CommonSetUp():
                  , evaluate_post
                  , epochs_post
                  , val_freq_post
-                 , gather_data_for_runnig_Sohrabis_and_DBF_beamformer
-                 , evaluate_sohrabi
+                 , benchmark
+                 , gather_data_for_running_benchmark
+                 , evaluate_benchmark
                  , evaluate_DBF
                  , create_DS_phase_noised
                  , train_dataset_size_post
@@ -95,8 +96,9 @@ class CommonSetUp():
         self.epochs_post = epochs_post
         self.val_freq_post = val_freq_post
 
-        self.gather_data_for_runnig_Sohrabis_and_DBF_beamformer = gather_data_for_runnig_Sohrabis_and_DBF_beamformer
-        self.evaluate_sohrabi = evaluate_sohrabi
+        self.benchmark = benchmark
+        self.gather_data_for_running_benchmark = gather_data_for_running_benchmark
+        self.evaluate_benchmark = evaluate_benchmark
         self.evaluate_DBF = evaluate_DBF
 
         self.create_DS_phase_noised = create_DS_phase_noised
@@ -180,7 +182,7 @@ class CommonSetUp():
         self.dataset_phi_name = "PN_data_73GHz_resampled"
         self.dataset_phi_address = "datasets/" + self.dataset_phi_name + ".mat"
 
-        self.dataset_for_running_sohrabi = "datasets/DS_for_running_Sohrabi_" + "N_ue_" + str(
+        self.dataset_for_running_benchmark = "datasets/DS_for_running_benchmark_" + "N_ue_" + str(
             self.Nue) + "_N_b_a_" + str(self.N_b_a) + "_N_u_a_" + str(self.N_u_a) + "_N_b_rf_" + str(
             self.N_b_rf) + "_N_u_rf_" + str(self.N_u_rf) + "_N_s_" + str(
             self.N_s) + "_L_" + str(int(self.L)) + "_SNR_" + str(int(self.SNR)) + "_K_" + str(
@@ -191,10 +193,37 @@ class CommonSetUp():
             self.N_s) + "_L_" + str(int(self.L)) + "_SNR_" + str(int(self.SNR)) + "_K_" + str(
             self.K) + "_K_prime_" + str(self.K_prime) + "_ch_est_err_var_dB_" + str(int(self.channel_est_err_mse_per_element_dB)) + ".mat"
         self.dataset_for_testing_DBF = self.dataset_for_testing_sohrabi
+        self.dataset_for_testing_zilli = "datasets/DS_for_testing_Zilli_" + "N_ue_" + str(
+            self.Nue) + "_N_b_a_" + str(self.N_b_a) + "_N_u_a_" + str(self.N_u_a) + "_N_b_rf_" + str(
+            self.N_b_rf) + "_N_u_rf_" + str(self.N_u_rf) + "_N_s_" + str(
+            self.N_s) + "_L_" + str(int(self.L)) + "_SNR_" + str(int(self.SNR)) + "_K_" + str(
+            self.K) + "_K_prime_" + str(self.K_prime) + "_ch_est_err_var_dB_" + str(
+            int(self.channel_est_err_mse_per_element_dB)) + ".mat"
+        self.dataset_for_testing_Dzhang = "datasets/DS_for_testing_Dzhang_" + "N_ue_" + str(
+            self.Nue) + "_N_b_a_" + str(self.N_b_a) + "_N_u_a_" + str(self.N_u_a) + "_N_b_rf_" + str(
+            self.N_b_rf) + "_N_u_rf_" + str(self.N_u_rf) + "_N_s_" + str(
+            self.N_s) + "_L_" + str(int(self.L)) + "_SNR_" + str(int(self.SNR)) + "_K_" + str(
+            self.K) + "_K_prime_" + str(self.K_prime) + "_ch_est_err_var_dB_" + str(
+            int(self.channel_est_err_mse_per_element_dB)) + ".mat"
+        self.dataset_for_testing_Gonzales = "datasets/DS_for_testing_Gonzales_" + "N_ue_" + str(
+            self.Nue) + "_N_b_a_" + str(self.N_b_a) + "_N_u_a_" + str(self.N_u_a) + "_N_b_rf_" + str(
+            self.N_b_rf) + "_N_u_rf_" + str(self.N_u_rf) + "_N_s_" + str(
+            self.N_s) + "_L_" + str(int(self.L)) + "_SNR_" + str(int(self.SNR)) + "_K_" + str(
+            self.K) + "_K_prime_" + str(self.K_prime) + "_ch_est_err_var_dB_" + str(
+            int(self.channel_est_err_mse_per_element_dB)) + ".mat"
+
+        if self.benchmark == "Sohrabi":
+            self.dataset_for_testing_benchmark = self.dataset_for_testing_sohrabi
+        elif self.benchmark == "Zilli":
+            self.dataset_for_testing_benchmark = self.dataset_for_testing_zilli
+        elif self.benchmark == "Dzhang":
+            self.dataset_for_testing_benchmark = self.dataset_for_testing_Dzhang
+        elif self.benchmark == "Gonzales":
+            self.dataset_for_testing_benchmark = self.dataset_for_testing_Gonzales
 
         # simulation results
         self.eval_file_name = "results/eval_" + self.simulation_ID + ".mat"
-        self.eval_file_name_sohrabi = "results/eval_Sohrabi_" + self.simulation_ID + ".mat"
+        self.eval_file_name_benchmark = "results/eval_" + self.benchmark + "_" + self.simulation_ID + ".mat"
         self.eval_file_name_DBF = "results/eval_DBF_" + self.simulation_ID + ".mat"
 
         self.address_of_best_model = "models/SE_ResNet_" + self.model_ID + ".h5"

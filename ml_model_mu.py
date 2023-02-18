@@ -41,7 +41,8 @@ class ML_model_class(tf.keras.Model):
         if self.setup.K_prime_size_test == 'yes':
             T = csi_tx_tmp_1[:, 0, 0:self.setup.influencial_subcarriers_set_size, :, :, :]
             csi_tx = tf.tile(T,
-                             multiples=[1, round(self.setup.K_prime / self.setup.influencial_subcarriers_set_size),1,1,1])
+                             multiples=[1, round(self.setup.K_prime / self.setup.influencial_subcarriers_set_size), 1,
+                                        1, 1])
         else:
             csi_tx = csi_tx_tmp_1[:, 0, :, :, :, :]
         return csi_tx, csi_rx
@@ -92,6 +93,7 @@ class ML_model_class(tf.keras.Model):
             noise_effective_k0_reshaped = tf.expand_dims(noise_effective_k0, axis=5)
             llr_k0 = self.demapper([y_symbols_k0_equalized / (self.setup.Nue * self.setup.N_s),
                                     noise_effective_k0_reshaped])
+
             bce_loss_k0 = self.loss([self.tx_bits_train[:, :, :, 0, :, :, :], llr_k0])
         trainables = self.CNN_transceiver.trainable_weights
 
@@ -114,7 +116,6 @@ class ML_model_class(tf.keras.Model):
                                  self.setup.CSIRSPeriod + rand_start - round(
                                      1 / self.setup.sampling_ratio_time_domain_keep) + 1,
                                  round(1 / self.setup.sampling_ratio_time_domain_keep))
-
 
         V_D_tmp = []
         V_RF_tmp = []
@@ -143,10 +144,10 @@ class ML_model_class(tf.keras.Model):
                    y_symbols_k0]
         y_symbols_k0_equalized, noise_effective_k0 = self.equalizer(inputs3)
         noise_effective_k0_reshaped = tf.expand_dims(noise_effective_k0, axis=5)
-        llr_k0 = self.demapper([y_symbols_k0_equalized / (self.setup.Nue * self.setup.N_s), noise_effective_k0_reshaped])
+        llr_k0 = self.demapper(
+            [y_symbols_k0_equalized / (self.setup.Nue * self.setup.N_s), noise_effective_k0_reshaped])
         bce_loss = self.loss([self.tx_bits_train[:, :, :, 0, :, :, :], llr_k0])
         loss_metric_test.update_state(bce_loss)
-
 
         # selected_symbols_capacity_metric = range(0, self.Nsymb - round(
         #     1 / self.sampling_ratio_time_domain_keep_capacity_metric) + 1,
@@ -179,7 +180,8 @@ class ML_model_class(tf.keras.Model):
         y_symbols_k0_equalized_, noise_effective_k0_ = self.equalizer(inputs6)
         noise_effective_k0_reshaped = tf.expand_dims(noise_effective_k0_, axis=5)
         llr__k0 = self.demapper(
-            [y_symbols_k0_equalized_ / (self.setup.Nue * self.setup.N_s), noise_effective_k0_reshaped])  # self.sigma2 / (2 * np.pi)])
+            [y_symbols_k0_equalized_ / (self.setup.Nue * self.setup.N_s),
+             noise_effective_k0_reshaped])  # self.sigma2 / (2 * np.pi)])
         bmi_avg, _ = self.bmi_in_presence_of_phase_noise([self.tx_bits_train[:, :, :, 0, :, :, :], llr__k0])
         capacity_metric_test.update_state(bmi_avg)
         return {"L2_test": loss_metric_test.result(),
@@ -196,7 +198,6 @@ class ML_model_class(tf.keras.Model):
                                  self.setup.CSIRSPeriod + rand_start - round(
                                      1 / self.setup.sampling_ratio_time_domain_keep) + 1,
                                  round(1 / self.setup.sampling_ratio_time_domain_keep))
-
 
         N_of_batches_in_DS = round(self.setup.eval_dataset_size / self.setup.BATCHSIZE)
         for batch_number in range(N_of_batches_in_DS):
@@ -235,7 +236,8 @@ class ML_model_class(tf.keras.Model):
             y_symbols_k0_equalized, noise_effective_k0 = self.equalizer(inputs3)
             noise_effective_k0_reshaped = tf.expand_dims(noise_effective_k0, axis=5)
             llr_k0 = self.demapper(
-                [y_symbols_k0_equalized / (self.setup.Nue * self.setup.N_s), noise_effective_k0_reshaped])  # self.sigma2 / (2 * np.pi)])
+                [y_symbols_k0_equalized / (self.setup.Nue * self.setup.N_s),
+                 noise_effective_k0_reshaped])  # self.sigma2 / (2 * np.pi)])
 
             inputs1 = [
                 tx_bits[batch_number * self.setup.BATCHSIZE: (batch_number + 1) * self.setup.BATCHSIZE, :, :, 0, :, :,
@@ -251,7 +253,7 @@ class ML_model_class(tf.keras.Model):
         return air_samples_k0, y_symbols_k0_equalized / (self.setup.Nue * self.setup.N_s)
 
     @tf.function
-    def evaluation_of_Sohrabis_beamformer(self, tx_bits, tx_symbols):
+    def evaluation_of_benchmark_beamformer(self, tx_bits, tx_symbols):
         # selected_symbols = np.random.choice(self.Nsymb,
         #                                         round(self.sampling_ratio_time_domain_keep * self.Nsymb),
         #                                         replace=False)
@@ -264,32 +266,37 @@ class ML_model_class(tf.keras.Model):
         N_of_batches_in_DS = round(self.setup.eval_dataset_size / self.setup.BATCHSIZE)
         for batch_number in range(N_of_batches_in_DS):
             # print('batch_number: ', batch_number)
-            H_complex, H_tilde, Lambda_B, Lambda_U, V_RF_Sohrabi_optimized, W_RF_Sohrabi_optimized, \
-            V_D_Sohrabi_optimized, W_D_Sohrabi_optimized = \
-                self.obj_test_dataset.data_generator_for_evaluation_of_Sohrabis_beamformer(batch_number)
+            if self.setup.benchmark == 'Sohrabi':
+                H_complex, H_tilde, Lambda_B, Lambda_U, V_RF_benchmark_optimized, W_RF_benchmark_optimized, \
+                V_D_benchmark_optimized, W_D_benchmark_optimized = \
+                    self.obj_test_dataset.data_generator_for_evaluation_of_sohrabi_beamformer(batch_number)
+            else:
+                H_complex, H_tilde, Lambda_B, Lambda_U, V_RF_benchmark_optimized, W_RF_benchmark_optimized, \
+                V_D_benchmark_optimized, W_D_benchmark_optimized = \
+                    self.obj_test_dataset.data_generator_for_evaluation_of_benchmark_beamformer(batch_number)
 
-            V_D_Sohrabi_optimized = tf.tile(tf.expand_dims(V_D_Sohrabi_optimized, axis=1), multiples=[1,
-                                                                                                      round(
-                                                                                                          self.setup.CSIRSPeriod * self.setup.sampling_ratio_time_domain_keep_capacity_metric),
-                                                                                                      1, 1, 1, 1])
-            W_D_Sohrabi_optimized = tf.tile(tf.expand_dims(W_D_Sohrabi_optimized, axis=1), multiples=[1,
-                                                                                                      round(
-                                                                                                          self.setup.CSIRSPeriod * self.setup.sampling_ratio_time_domain_keep_capacity_metric),
-                                                                                                      1, 1, 1, 1])
-            V_RF_Sohrabi_optimized = tf.tile(tf.expand_dims(V_RF_Sohrabi_optimized, axis=1), multiples=[1,
-                                                                                                        round(
-                                                                                                            self.setup.CSIRSPeriod * self.setup.sampling_ratio_time_domain_keep_capacity_metric),
-                                                                                                        1, 1])
-            W_RF_Sohrabi_optimized = tf.tile(tf.expand_dims(W_RF_Sohrabi_optimized, axis=1), multiples=[1,
-                                                                                                        round(
-                                                                                                            self.setup.CSIRSPeriod * self.setup.sampling_ratio_time_domain_keep_capacity_metric),
-                                                                                                        1, 1, 1])
+            V_D_benchmark_optimized = tf.tile(tf.expand_dims(V_D_benchmark_optimized, axis=1), multiples=[1,
+                                                                                                          round(
+                                                                                                              self.setup.CSIRSPeriod * self.setup.sampling_ratio_time_domain_keep_capacity_metric),
+                                                                                                          1, 1, 1, 1])
+            W_D_benchmark_optimized = tf.tile(tf.expand_dims(W_D_benchmark_optimized, axis=1), multiples=[1,
+                                                                                                          round(
+                                                                                                              self.setup.CSIRSPeriod * self.setup.sampling_ratio_time_domain_keep_capacity_metric),
+                                                                                                          1, 1, 1, 1])
+            V_RF_benchmark_optimized = tf.tile(tf.expand_dims(V_RF_benchmark_optimized, axis=1), multiples=[1,
+                                                                                                            round(
+                                                                                                                self.setup.CSIRSPeriod * self.setup.sampling_ratio_time_domain_keep_capacity_metric),
+                                                                                                            1, 1])
+            W_RF_benchmark_optimized = tf.tile(tf.expand_dims(W_RF_benchmark_optimized, axis=1), multiples=[1,
+                                                                                                            round(
+                                                                                                                self.setup.CSIRSPeriod * self.setup.sampling_ratio_time_domain_keep_capacity_metric),
+                                                                                                            1, 1, 1])
 
-            inputs0 = [V_D_Sohrabi_optimized,
-                       W_D_Sohrabi_optimized,
+            inputs0 = [V_D_benchmark_optimized,
+                       W_D_benchmark_optimized,
                        H_complex,
-                       V_RF_Sohrabi_optimized,
-                       W_RF_Sohrabi_optimized,
+                       V_RF_benchmark_optimized,
+                       W_RF_benchmark_optimized,
                        Lambda_B,
                        Lambda_U,
                        tx_bits[batch_number * self.setup.BATCHSIZE: (batch_number + 1) * self.setup.BATCHSIZE, :],
@@ -297,14 +304,15 @@ class ML_model_class(tf.keras.Model):
             y_symbols_k0 = self.rx_calc(inputs0)
 
             csi_tx, csi_rx = self.NN_input_preparation(H_tilde)
-
-            inputs3 = [V_D_Sohrabi_optimized, W_D_Sohrabi_optimized,
+            # rescaling = self.setup.Nue * self.setup.N_s * np.sqrt(2.)
+            inputs3 = [V_D_benchmark_optimized, W_D_benchmark_optimized,
                        tf.complex(csi_rx[:, :, :, :, :, :, 0], csi_rx[:, :, :, :, :, :, 1]),
-                       V_RF_Sohrabi_optimized, W_RF_Sohrabi_optimized, y_symbols_k0]
+                       V_RF_benchmark_optimized, W_RF_benchmark_optimized, y_symbols_k0]
             y_symbols_k0_equalized, noise_effective_k0 = self.equalizer(inputs3)
             noise_effective_k0_reshaped = tf.expand_dims(noise_effective_k0, axis=5)
+
             llr_k0 = self.demapper(
-                [y_symbols_k0_equalized , noise_effective_k0_reshaped])  # self.setup.sigma2 / (2 * np.pi)
+                [y_symbols_k0_equalized, noise_effective_k0_reshaped])  # self.setup.sigma2 / (2 * np.pi)
 
             # BATCHSIZE 0, int(Nsymb * sampling_ratio_time_domain_keep) 1, M 2, K_prime 3, Nue 4, N_s 5, log2(M) 6
             inputs1 = [
@@ -365,7 +373,6 @@ class ML_model_class(tf.keras.Model):
                        tx_bits[batch_number * self.setup.BATCHSIZE: (batch_number + 1) * self.setup.BATCHSIZE, :],
                        tx_symbols[batch_number * self.setup.BATCHSIZE: (batch_number + 1) * self.setup.BATCHSIZE, :]]
             y_symbols_k0 = self.rx_calc(inputs0)
-
 
             csi_tx, csi_rx = self.NN_input_preparation(H_tilde)
 

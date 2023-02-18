@@ -44,21 +44,22 @@ if __name__ == '__main__':
     # Control panel 2 (for normal use) ----------------------------------
     # training parameters
     load_trained_best_model = 'yes'
-    do_train = 'yes'
-    save_model = 'yes'
-    evaluate_model = 'no'
-    n_epochs = 10
+    do_train = 'no'
+    save_model = 'no'
+    evaluate_model = 'yes'
+    n_epochs = 5
     validation_freq = 1
 
     # Benchmark methods
-    gather_data_for_runnig_Sohrabis_and_DBF_beamformer = 'no'
-    evaluate_sohrabi = 'no'
+    benchmark = "Zilli"
+    gather_data_for_running_benchmark = 'no'
+    evaluate_benchmark = 'no'
     evaluate_DBF = 'no'
 
     # dateset
     is_data_segmented = 'no'
     create_DS_phase_noised = 'yes'
-    train_dataset_size = 1024
+    train_dataset_size = 4
     train_data_fragment_size = train_dataset_size
     test_dataset_size = 128
     test_data_fragment_size = test_dataset_size
@@ -67,7 +68,7 @@ if __name__ == '__main__':
 
     # optimization parameters
     L_rate_initial = 6e-5
-    BATCHSIZE = 8
+    BATCHSIZE = 128
     gradient_norm_clipper_pre = 1.
     gradient_norm_clipper_post = 1.
     ReduceLROnPlateau_decay_rate = 0.5
@@ -101,11 +102,11 @@ if __name__ == '__main__':
         M = 64
 
     N_s = 1
-    Nue = 1
+    Nue = 4
     N_b_a = 16
-    N_u_a = 16
-    N_b_rf = 8
-    N_u_rf = 8
+    N_u_a = 4
+    N_b_rf = 4
+    N_u_rf = 1
     N_b_o = N_b_rf
     N_u_o = N_u_rf
     K = 1024
@@ -115,13 +116,13 @@ if __name__ == '__main__':
     SNR = 20.
     P = 100.
     sigma2 = P / (10 ** (SNR / 10.))
-    apply_channel_est_error = True
-    channel_est_err_mse_per_element_dB = -10.
+    apply_channel_est_error = False
+    channel_est_err_mse_per_element_dB = -100.
 
     # Phase noise parameters
-    CSIRSPeriod = 20 * 14  # 20 subframes, 14 symbols per subframe
+    CSIRSPeriod = 20*14 # 20 subframes, 14 symbols per subframe
     f_0 = 100e3
-    L = -85
+    L = -100
     fs = 10 ** 9 / 65.104
     phase_noise_recorded = 'no'
     CLO_or_ILO = 'ILO'
@@ -149,8 +150,9 @@ if __name__ == '__main__':
                         , evaluate_model
                         , n_epochs
                         , validation_freq
-                        , gather_data_for_runnig_Sohrabis_and_DBF_beamformer
-                        , evaluate_sohrabi
+                        , benchmark
+                        , gather_data_for_running_benchmark
+                        , evaluate_benchmark
                         , evaluate_DBF
                         , create_DS_phase_noised
                         , train_dataset_size
@@ -383,7 +385,7 @@ if __name__ == '__main__':
                 ml_model_post_training.save_weights(setup.address_of_best_model)
                 print("-- trained model is saved.")
 
-    if setup.gather_data_for_runnig_Sohrabis_and_DBF_beamformer == 'yes':
+    if setup.gather_data_for_running_benchmark == 'yes':
         HH_complex, ccsi_tx, HH_tilde, LLambda_B, LLambda_U = test_DS_gen.data_generator_for_running_Sohrabis_beamformer()
         H_complex = HH_complex.numpy()
         csi_tx = ccsi_tx.numpy()
@@ -396,8 +398,8 @@ if __name__ == '__main__':
                                      'Lambda_B': Lambda_B,
                                      'Lambda_U': Lambda_U}
 
-        sio.savemat(setup.dataset_for_running_sohrabi, mdic_data_for_sunning_soh)
-        print('-- data gatherd for DBF and Sohrabis method')
+        sio.savemat(setup.dataset_for_running_benchmark, mdic_data_for_sunning_soh)
+        print('-- data gatherd for benchmark methods')
 
     obj_data_plotting_and_storing = Data_plotting_and_storing(obj_ML_model_post_training=ml_model_post_training,
                                                               constellation=constellation,
@@ -406,16 +408,16 @@ if __name__ == '__main__':
                                                               setup=setup)
 
 
-    if setup.evaluate_sohrabi == 'yes':
-        air_samples_Soh, rx_symbols_Soh, BER_Soh, MSE_Soh = obj_data_plotting_and_storing.execute_for_Sohrabi()
+    if setup.evaluate_benchmark == 'yes':
+        air_samples_Soh, rx_symbols_Soh, BER_Soh, MSE_Soh = obj_data_plotting_and_storing.execute_for_benchmark()
         mdic_soh = {"C_samples_x_OFDM_index": air_samples_Soh.numpy(),
                     'L': 0,
                     'tx_symbols': tx_symbols_eval.numpy(),
                     'rx_symbols': rx_symbols_Soh.numpy(),
                     'BER': BER_Soh.numpy(),
                     'MSE': MSE_Soh.numpy()}
-        sio.savemat(setup.eval_file_name_sohrabi, mdic_soh)
-        print('Sohrabis beamformer is evaluated')
+        sio.savemat(setup.eval_file_name_benchmark, mdic_soh)
+        print('benchmark beamformer is evaluated')
 
     if setup.evaluate_DBF == 'yes':
         air_samples_DBF, rx_symbols_DBF, BER_DBF, MSE_DBF = obj_data_plotting_and_storing.execute_for_DBF()

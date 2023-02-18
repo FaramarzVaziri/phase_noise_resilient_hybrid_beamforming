@@ -411,7 +411,6 @@ class RX_ops_and_losses():
         T1 = tf.linalg.matmul(T0, H_tilde)
         T2 = tf.linalg.matmul(T1, V_RF)
         T3 = tf.linalg.matmul(T2, V_D)
-        # note that y should be a vector of shape [1 x N_s] (horizental)
         y_eq, n = lmmse_equalizer(tf.transpose(y, perm=[1, 0]), T3,
                                   self.setup.sigma2 / (2 * np.pi) * tf.eye(self.setup.N_s, dtype=tf.complex64),
                                   whiten_interference=False)
@@ -536,8 +535,16 @@ class RX_ops_and_losses():
     @tf.function
     def BMI_for_k_0(self, inputs):
         b, llr = inputs
+        llr = tf.clip_by_value(llr, -30., 30.)
+
+        # if np.count_nonzero(np.isnan(1 - self.bce(b, llr) / tf.math.log(2.))) != 0:
+
+        #     print(llr)
+        #     print(b)
+
         return 1 - self.bce(b, llr) / tf.math.log(2.)
 
+    # np.count_nonzero(np.isnan(b))
     @tf.function
     def BMI_forall_ues(self, inputs):
         return tf.map_fn(self.BMI_for_k_0, inputs, fn_output_signature=tf.float32)
