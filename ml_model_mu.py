@@ -305,6 +305,7 @@ class ML_model_class(tf.keras.Model):
 
             csi_tx, csi_rx = self.NN_input_preparation(H_tilde)
             # rescaling = self.setup.Nue * self.setup.N_s * np.sqrt(2.)
+            # rescaling = np.sqrt(2.)
             inputs3 = [V_D_benchmark_optimized, W_D_benchmark_optimized,
                        tf.complex(csi_rx[:, :, :, :, :, :, 0], csi_rx[:, :, :, :, :, :, 1]),
                        V_RF_benchmark_optimized, W_RF_benchmark_optimized, y_symbols_k0]
@@ -312,7 +313,7 @@ class ML_model_class(tf.keras.Model):
             noise_effective_k0_reshaped = tf.expand_dims(noise_effective_k0, axis=5)
 
             llr_k0 = self.demapper(
-                [y_symbols_k0_equalized, noise_effective_k0_reshaped])  # self.setup.sigma2 / (2 * np.pi)
+                [y_symbols_k0_equalized, self.setup.sigma2 / (2 * np.pi)])  # self.setup.sigma2 / (2 * np.pi)
 
             # BATCHSIZE 0, int(Nsymb * sampling_ratio_time_domain_keep) 1, M 2, K_prime 3, Nue 4, N_s 5, log2(M) 6
             inputs1 = [

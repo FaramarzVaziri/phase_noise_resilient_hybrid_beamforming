@@ -44,8 +44,8 @@ if __name__ == '__main__':
     # Control panel 2 (for normal use) ----------------------------------
     # training parameters
     load_trained_best_model = 'no'
-    do_train = 'yes'
-    save_model = 'yes'
+    do_train = 'no'
+    save_model = 'no'
     evaluate_model = 'no'
     n_epochs = 5
     validation_freq = 1
@@ -53,22 +53,22 @@ if __name__ == '__main__':
     # Benchmark methods
     benchmark = "Zilli"
     gather_data_for_running_benchmark = 'no'
-    evaluate_benchmark = 'no'
+    evaluate_benchmark = 'yes'
     evaluate_DBF = 'no'
 
     # dateset
     is_data_segmented = 'no'
     create_DS_phase_noised = 'yes'
-    train_dataset_size = 1024
+    train_dataset_size = 4
     train_data_fragment_size = train_dataset_size
-    test_dataset_size = 128
+    test_dataset_size = 4
     test_data_fragment_size = test_dataset_size
-    eval_dataset_size = 128
+    eval_dataset_size = 4
     eval_data_fragment_size = eval_dataset_size
 
     # optimization parameters
     L_rate_initial = 6e-5
-    BATCHSIZE = 16
+    BATCHSIZE = 4
     gradient_norm_clipper_pre = 1.
     gradient_norm_clipper_post = 1.
     ReduceLROnPlateau_decay_rate = 0.5
@@ -101,21 +101,21 @@ if __name__ == '__main__':
     elif mod_type == '64QAM':
         M = 64
 
-    N_s = 1
-    Nue = 4
-    N_b_a = 16
-    N_u_a = 4
+    N_s = 4
+    Nue = 1
+    N_b_a = 32
+    N_u_a = 32
     N_b_rf = 4
-    N_u_rf = 1
+    N_u_rf = 4
     N_b_o = N_b_rf
     N_u_o = N_u_rf
     K = 1024
     K_prime = 4  # size of the influencial subcarriers set
     PTRS_seperation = round(
         K_prime / 2)  # Separation between PTRS subcarriers. I abandoned the idea of refreshing RX CSI using PTRS (so it is not used)
-    E_tx_dBm_per_Hz = -55 # Power budget per subcarrier
+    E_tx_dBm_per_Hz = -60 # Power budget per subcarrier
     P = 10**((E_tx_dBm_per_Hz - 30.) / 10.)
-    sigma2_dBm_per_Hz = -139
+    sigma2_dBm_per_Hz = -80 #139
     sigma2 = 10**((sigma2_dBm_per_Hz - 30) / 10)
     apply_channel_est_error = False
     channel_est_err_mse_per_element_dB = -100.
@@ -123,7 +123,7 @@ if __name__ == '__main__':
     # Phase noise parameters
     CSIRSPeriod = 20*14 # 20 subframes, 14 symbols per subframe
     f_0 = 100e3
-    L = -95
+    L = -85
     fs = 10 ** 9 / 65.104
     phase_noise_recorded = 'no'
     CLO_or_ILO = 'ILO'
@@ -134,10 +134,9 @@ if __name__ == '__main__':
     sampling_ratio_time_domain_keep_capacity_metric = sampling_ratio_time_domain_keep
     influencial_subcarriers_set_size = 4
 
-
-    Nb = 4 # phase shifter resolution in bits
-
     # end of control panel ----------------------------------
+
+
 
 
     setup = CommonSetUp(use_test_data_for_train
@@ -215,8 +214,7 @@ if __name__ == '__main__':
                         , sampling_ratio_subcarrier_domain_keep
                         , GMI_approx
                         , K_prime_size_test
-                        , influencial_subcarriers_set_size
-                        , Nb)
+                        , influencial_subcarriers_set_size)
 
     constellation = Constellation("qam", num_bits_per_symbol=round(np.log2(setup.M)), normalize=True, center=False)
     mapper = Mapper(constellation=constellation)

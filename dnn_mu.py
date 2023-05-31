@@ -285,19 +285,23 @@ class CNN_model_class():
 
     def CNN_transmiter_AdaSE_ResNet(self, trainable_csi, layer_name):
         kernels_D_start_and_end = [min(self.setup.K_prime, self.setup.convolutional_kernels) + self.setup.extra_kernel,
-                                   min(self.setup.N_u_a * self.setup.Nue, self.setup.convolutional_kernels) + self.setup.extra_kernel,
+                                   min(self.setup.N_u_a * self.setup.Nue,
+                                       self.setup.convolutional_kernels) + self.setup.extra_kernel,
                                    min(self.setup.N_b_a, self.setup.convolutional_kernels) + self.setup.extra_kernel]
         kernels_RF = [min(self.setup.N_u_a * self.setup.Nue, self.setup.convolutional_kernels),
                       min(self.setup.N_b_a, self.setup.convolutional_kernels)]
         kernels_D = [min(self.setup.K_prime, self.setup.convolutional_kernels),
                      min(self.setup.N_u_a * self.setup.Nue, self.setup.convolutional_kernels),
                      min(self.setup.N_b_a, self.setup.convolutional_kernels)]
-        csi = Input(shape=(self.setup.K_prime, self.setup.N_u_a * self.setup.Nue, self.setup.N_b_a, 2), batch_size=self.setup.BATCHSIZE)
+        csi = Input(shape=(self.setup.K_prime, self.setup.N_u_a * self.setup.Nue, self.setup.N_b_a, 2),
+                    batch_size=self.setup.BATCHSIZE)
         ns = Input(shape=[1], batch_size=self.setup.BATCHSIZE)
 
         # common path
-        AP_1 = MaxPooling3D(pool_size=(self.setup.subcarrier_strides_l1, self.setup.N_u_a_strides_l1, self.setup.N_b_a_strides_l1))
-        AP_2 = MaxPooling3D(pool_size=(self.setup.subcarrier_strides_l2, self.setup.N_u_a_strides_l2, self.setup.N_b_a_strides_l2))
+        AP_1 = MaxPooling3D(
+            pool_size=(self.setup.subcarrier_strides_l1, self.setup.N_u_a_strides_l1, self.setup.N_b_a_strides_l1))
+        AP_2 = MaxPooling3D(
+            pool_size=(self.setup.subcarrier_strides_l2, self.setup.N_u_a_strides_l2, self.setup.N_b_a_strides_l2))
 
         AdaSE_block_common_branch = []
 
@@ -378,14 +382,16 @@ class CNN_model_class():
                                     kernel_size=[self.setup.subcarrier_strides_l1, 1, 1],
                                     strides=[self.setup.subcarrier_strides_l1, 1, 1],
                                     padding='valid')
-        current_size_dim_Nua = round(self.setup.N_u_a * self.setup.Nue / (self.setup.N_u_a_strides_l1 * self.setup.N_u_a_strides_l2))
+        current_size_dim_Nua = round(
+            self.setup.N_u_a * self.setup.Nue / (self.setup.N_u_a_strides_l1 * self.setup.N_u_a_strides_l2))
         current_size_dim_Nba = round(self.setup.N_b_a / (self.setup.N_b_a_strides_l1 * self.setup.N_b_a_strides_l2))
 
         if self.setup.Nue == 1:
             AP_D_branch_end = MaxPooling3D(pool_size=(1, 1, round(current_size_dim_Nba / self.setup.N_s)))
         else:
             AP_D_branch_end = MaxPooling3D(
-                pool_size=(1, round(current_size_dim_Nba / self.setup.N_b_rf), round(current_size_dim_Nba / self.setup.N_s)))
+                pool_size=(
+                    1, round(current_size_dim_Nba / self.setup.N_b_rf), round(current_size_dim_Nba / self.setup.N_s)))
 
         reshaper_D = Reshape(target_shape=[self.setup.K_prime, self.setup.N_b_rf * self.setup.Nue, self.setup.N_s, -1])
         for i in range(1, self.setup.n_post_Tconv_processing - 1, 1):
@@ -410,12 +416,14 @@ class CNN_model_class():
                                  n2=self.setup.N_b_rf * self.setup.Nue,
                                  n3=self.setup.N_s,
                                  use_attention=self.setup.use_attention))
-        reshaper_D_end = Reshape(target_shape=[self.setup.Nue, self.setup.K_prime, self.setup.N_b_rf, self.setup.N_s, -1])
+        reshaper_D_end = Reshape(
+            target_shape=[self.setup.Nue, self.setup.K_prime, self.setup.N_b_rf, self.setup.N_s, -1])
 
         # V_RF path-------------------
-        AP_rf = MaxPooling3D(pool_size=(round(self.setup.K_prime / (self.setup.subcarrier_strides_l1 * self.setup.subcarrier_strides_l2)),
-                                        self.setup.Nue,
-                                        1))
+        AP_rf = MaxPooling3D(pool_size=(
+            round(self.setup.K_prime / (self.setup.subcarrier_strides_l1 * self.setup.subcarrier_strides_l2)),
+            self.setup.Nue,
+            1))
         reshaper_RF_begin = Reshape(
             target_shape=[round(self.setup.N_u_a / (self.setup.N_u_a_strides_l1 * self.setup.N_u_a_strides_l2)),
                           round(self.setup.N_b_a / (self.setup.N_b_a_strides_l1 * self.setup.N_b_a_strides_l2)),
@@ -538,8 +546,10 @@ class CNN_model_class():
         ns = Input(shape=[1], batch_size=self.setup.BATCHSIZE)
 
         # common path
-        AP_1 = MaxPooling3D(pool_size=(self.setup.subcarrier_strides_l1, self.setup.N_u_a_strides_l1, self.setup.N_b_a_strides_l1))
-        AP_2 = MaxPooling3D(pool_size=(self.setup.subcarrier_strides_l2, self.setup.N_u_a_strides_l2, self.setup.N_b_a_strides_l2))
+        AP_1 = MaxPooling3D(
+            pool_size=(self.setup.subcarrier_strides_l1, self.setup.N_u_a_strides_l1, self.setup.N_b_a_strides_l1))
+        AP_2 = MaxPooling3D(
+            pool_size=(self.setup.subcarrier_strides_l2, self.setup.N_u_a_strides_l2, self.setup.N_b_a_strides_l2))
 
         AdaSE_block_common_branch = []
 
@@ -650,9 +660,10 @@ class CNN_model_class():
                                  use_attention=self.setup.use_attention))
 
         # V_RF path-------------------
-        AP_rf = MaxPooling3D(pool_size=(round(self.setup.K_prime / (self.setup.subcarrier_strides_l1 * self.setup.subcarrier_strides_l2)),
-                                        1,
-                                        1))
+        AP_rf = MaxPooling3D(pool_size=(
+            round(self.setup.K_prime / (self.setup.subcarrier_strides_l1 * self.setup.subcarrier_strides_l2)),
+            1,
+            1))
         reshaper_RF_begin = Reshape(
             target_shape=[round(self.setup.N_u_a / (self.setup.N_u_a_strides_l1 * self.setup.N_u_a_strides_l2)),
                           round(self.setup.N_b_a / (self.setup.N_b_a_strides_l1 * self.setup.N_b_a_strides_l2)),
@@ -764,19 +775,23 @@ class CNN_model_class():
 
     def CNN_transceiver_AdaSE_ResNet_no_binding(self, trainable_csi, layer_name):
         kernels_D_start_and_end = [min(self.setup.K_prime, self.setup.convolutional_kernels) + self.setup.extra_kernel,
-                                   min(self.setup.N_u_a * self.setup.Nue, self.setup.convolutional_kernels) + self.setup.extra_kernel,
+                                   min(self.setup.N_u_a * self.setup.Nue,
+                                       self.setup.convolutional_kernels) + self.setup.extra_kernel,
                                    min(self.setup.N_b_a, self.setup.convolutional_kernels) + self.setup.extra_kernel]
         kernels_RF = [min(self.setup.N_u_a * self.setup.Nue, self.setup.convolutional_kernels),
                       min(self.setup.N_b_a, self.setup.convolutional_kernels)]
         kernels_D = [min(self.setup.K_prime, self.setup.convolutional_kernels),
                      min(self.setup.N_u_a * self.setup.Nue, self.setup.convolutional_kernels),
                      min(self.setup.N_b_a, self.setup.convolutional_kernels)]
-        csi = Input(shape=(self.setup.K_prime, self.setup.N_u_a * self.setup.Nue, self.setup.N_b_a, 2), batch_size=self.setup.BATCHSIZE)
+        csi = Input(shape=(self.setup.K_prime, self.setup.N_u_a * self.setup.Nue, self.setup.N_b_a, 2),
+                    batch_size=self.setup.BATCHSIZE)
         ns = Input(shape=[1], batch_size=self.setup.BATCHSIZE)
 
         # common path __________________________________________________________________________________________________
-        AP_1 = MaxPooling3D(pool_size=(self.setup.subcarrier_strides_l1, self.setup.N_u_a_strides_l1, self.setup.N_b_a_strides_l1))
-        AP_2 = MaxPooling3D(pool_size=(self.setup.subcarrier_strides_l2, self.setup.N_u_a_strides_l2, self.setup.N_b_a_strides_l2))
+        AP_1 = MaxPooling3D(
+            pool_size=(self.setup.subcarrier_strides_l1, self.setup.N_u_a_strides_l1, self.setup.N_b_a_strides_l1))
+        AP_2 = MaxPooling3D(
+            pool_size=(self.setup.subcarrier_strides_l2, self.setup.N_u_a_strides_l2, self.setup.N_b_a_strides_l2))
 
         AdaSE_block_common_branch = []
 
@@ -857,16 +872,20 @@ class CNN_model_class():
                                       kernel_size=[self.setup.subcarrier_strides_l1, 1, 1],
                                       strides=[self.setup.subcarrier_strides_l1, 1, 1],
                                       padding='valid')
-        current_size_V_dim_Nua = round(self.setup.N_u_a * self.setup.Nue / (self.setup.N_u_a_strides_l1 * self.setup.N_u_a_strides_l2))
+        current_size_V_dim_Nua = round(
+            self.setup.N_u_a * self.setup.Nue / (self.setup.N_u_a_strides_l1 * self.setup.N_u_a_strides_l2))
         current_size_V_dim_Nba = round(self.setup.N_b_a / (self.setup.N_b_a_strides_l1 * self.setup.N_b_a_strides_l2))
 
         if self.setup.Nue == 1:
             AP_V_D_branch_end = MaxPooling3D(pool_size=(1, 1, round(current_size_V_dim_Nba / self.setup.N_s)))
         else:
             AP_V_D_branch_end = MaxPooling3D(
-                pool_size=(1, round(current_size_V_dim_Nba / self.setup.N_b_rf), round(current_size_V_dim_Nba / self.setup.N_s)))
+                pool_size=(
+                    1, round(current_size_V_dim_Nba / self.setup.N_b_rf),
+                    round(current_size_V_dim_Nba / self.setup.N_s)))
 
-        reshaper_V_D = Reshape(target_shape=[self.setup.K_prime, self.setup.N_b_rf * self.setup.Nue, self.setup.N_s, -1])
+        reshaper_V_D = Reshape(
+            target_shape=[self.setup.K_prime, self.setup.N_b_rf * self.setup.Nue, self.setup.N_s, -1])
         for i in range(1, self.setup.n_post_Tconv_processing - 1, 1):
             AdaSE_ResNet_block_V_D_branch_post_Tconv_processing.append(
                 AdaSE_ResNet_class_D(filters=self.setup.convolutional_filters,
@@ -889,13 +908,15 @@ class CNN_model_class():
                                  n2=self.setup.N_b_rf * self.setup.Nue,
                                  n3=self.setup.N_s,
                                  use_attention=self.setup.use_attention))
-        reshaper_V_D_end = Reshape(target_shape=[self.setup.Nue, self.setup.K_prime, self.setup.N_b_rf, self.setup.N_s, -1])
+        reshaper_V_D_end = Reshape(
+            target_shape=[self.setup.Nue, self.setup.K_prime, self.setup.N_b_rf, self.setup.N_s, -1])
 
         # V_RF path __________________________________________________________________________________________________
         AP_V_rf = MaxPooling3D(
-            pool_size=(round(self.setup.K_prime / (self.setup.subcarrier_strides_l1 * self.setup.subcarrier_strides_l2)),
-                       self.setup.Nue,
-                       1))
+            pool_size=(
+                round(self.setup.K_prime / (self.setup.subcarrier_strides_l1 * self.setup.subcarrier_strides_l2)),
+                self.setup.Nue,
+                1))
         reshaper_V_RF_begin = Reshape(
             target_shape=[round(self.setup.N_u_a / (self.setup.N_u_a_strides_l1 * self.setup.N_u_a_strides_l2)),
                           round(self.setup.N_b_a / (self.setup.N_b_a_strides_l1 * self.setup.N_b_a_strides_l2)),
@@ -1001,12 +1022,15 @@ class CNN_model_class():
                                       kernel_size=[self.setup.subcarrier_strides_l1, 1, 1],
                                       strides=[self.setup.subcarrier_strides_l1, 1, 1],
                                       padding='valid')
-        current_size_W_dim_Nua = round(self.setup.N_u_a * self.setup.Nue / (self.setup.N_u_a_strides_l1 * self.setup.N_u_a_strides_l2))
+        current_size_W_dim_Nua = round(
+            self.setup.N_u_a * self.setup.Nue / (self.setup.N_u_a_strides_l1 * self.setup.N_u_a_strides_l2))
         current_size_W_dim_Nba = round(self.setup.N_b_a / (self.setup.N_b_a_strides_l1 * self.setup.N_b_a_strides_l2))
 
         AP_W_D_branch_end = MaxPooling3D(
-            pool_size=(1, int(current_size_W_dim_Nua / self.setup.N_u_rf), int(current_size_W_dim_Nua / self.setup.N_s)))
-        reshaper_W_D = Reshape(target_shape=[self.setup.K_prime, self.setup.Nue * self.setup.N_u_rf, self.setup.N_s, -1])
+            pool_size=(
+                1, int(current_size_W_dim_Nua / self.setup.N_u_rf), int(current_size_W_dim_Nua / self.setup.N_s)))
+        reshaper_W_D = Reshape(
+            target_shape=[self.setup.K_prime, self.setup.Nue * self.setup.N_u_rf, self.setup.N_s, -1])
         for i in range(1, self.setup.n_post_Tconv_processing - 1, 1):
             AdaSE_ResNet_block_W_D_branch_post_Tconv_processing.append(
                 AdaSE_ResNet_class_D(filters=self.setup.convolutional_filters,
@@ -1029,17 +1053,20 @@ class CNN_model_class():
                                  n2=self.setup.N_u_rf * self.setup.Nue,
                                  n3=self.setup.N_s,
                                  use_attention=self.setup.use_attention))
-        reshaper_W_D_end = Reshape(target_shape=[self.setup.Nue, self.setup.K_prime, self.setup.N_u_rf, self.setup.N_s, -1])
+        reshaper_W_D_end = Reshape(
+            target_shape=[self.setup.Nue, self.setup.K_prime, self.setup.N_u_rf, self.setup.N_s, -1])
 
         # W_RF path-------------------
         AP_W_rf = MaxPooling3D(
-            pool_size=(round(self.setup.K_prime / (self.setup.subcarrier_strides_l1 * self.setup.subcarrier_strides_l2)),
-                       1,
-                       1))
+            pool_size=(
+                round(self.setup.K_prime / (self.setup.subcarrier_strides_l1 * self.setup.subcarrier_strides_l2)),
+                1,
+                1))
         reshaper_W_RF_begin = Reshape(
-            target_shape=[round(self.setup.N_u_a * self.setup.Nue / (self.setup.N_u_a_strides_l1 * self.setup.N_u_a_strides_l2)),
-                          round(self.setup.N_b_a / (self.setup.N_b_a_strides_l1 * self.setup.N_b_a_strides_l2)),
-                          -1])
+            target_shape=[
+                round(self.setup.N_u_a * self.setup.Nue / (self.setup.N_u_a_strides_l1 * self.setup.N_u_a_strides_l2)),
+                round(self.setup.N_b_a / (self.setup.N_b_a_strides_l1 * self.setup.N_b_a_strides_l2)),
+                -1])
 
         AdaSE_ResNet_block_W_RF_branch = []
 
@@ -1178,19 +1205,23 @@ class CNN_model_class():
 
     def CNN_transceiver_AdaSE_ResNet_with_binding(self, trainable_csi, layer_name):
         kernels_D_start_and_end = [min(self.setup.K_prime, self.setup.convolutional_kernels) + self.setup.extra_kernel,
-                                   min(self.setup.N_u_a * self.setup.Nue, self.setup.convolutional_kernels) + self.setup.extra_kernel,
+                                   min(self.setup.N_u_a * self.setup.Nue,
+                                       self.setup.convolutional_kernels) + self.setup.extra_kernel,
                                    min(self.setup.N_b_a, self.setup.convolutional_kernels) + self.setup.extra_kernel]
         kernels_RF = [min(self.setup.N_u_a * self.setup.Nue, self.setup.convolutional_kernels),
                       min(self.setup.N_b_a, self.setup.convolutional_kernels)]
         kernels_D = [min(self.setup.K_prime, self.setup.convolutional_kernels),
                      min(self.setup.N_u_a * self.setup.Nue, self.setup.convolutional_kernels),
                      min(self.setup.N_b_a, self.setup.convolutional_kernels)]
-        csi = Input(shape=(self.setup.K_prime, self.setup.N_u_a * self.setup.Nue, self.setup.N_b_a, 2), batch_size=self.setup.BATCHSIZE)
+        csi = Input(shape=(self.setup.K_prime, self.setup.N_u_a * self.setup.Nue, self.setup.N_b_a, 2),
+                    batch_size=self.setup.BATCHSIZE)
         ns = Input(shape=[1], batch_size=self.setup.BATCHSIZE)
 
         # common path __________________________________________________________________________________________________
-        AP_1 = MaxPooling3D(pool_size=(self.setup.subcarrier_strides_l1, self.setup.N_u_a_strides_l1, self.setup.N_b_a_strides_l1))
-        AP_2 = MaxPooling3D(pool_size=(self.setup.subcarrier_strides_l2, self.setup.N_u_a_strides_l2, self.setup.N_b_a_strides_l2))
+        AP_1 = MaxPooling3D(
+            pool_size=(self.setup.subcarrier_strides_l1, self.setup.N_u_a_strides_l1, self.setup.N_b_a_strides_l1))
+        AP_2 = MaxPooling3D(
+            pool_size=(self.setup.subcarrier_strides_l2, self.setup.N_u_a_strides_l2, self.setup.N_b_a_strides_l2))
 
         AdaSE_block_common_branch = []
 
@@ -1233,11 +1264,12 @@ class CNN_model_class():
                                                                   use_attention=self.setup.use_attention))
 
         reshaper_common = Reshape(
-            target_shape=[round(self.setup.K_prime / (self.setup.subcarrier_strides_l1 * self.setup.subcarrier_strides_l2)),
-                          self.setup.Nue,
-                          round(self.setup.N_u_a / (self.setup.N_u_a_strides_l1 * self.setup.N_u_a_strides_l2)),
-                          round(self.setup.N_b_a / (self.setup.N_b_a_strides_l1 * self.setup.N_b_a_strides_l2)),
-                          -1])
+            target_shape=[
+                round(self.setup.K_prime / (self.setup.subcarrier_strides_l1 * self.setup.subcarrier_strides_l2)),
+                self.setup.Nue,
+                round(self.setup.N_u_a / (self.setup.N_u_a_strides_l1 * self.setup.N_u_a_strides_l2)),
+                round(self.setup.N_b_a / (self.setup.N_b_a_strides_l1 * self.setup.N_b_a_strides_l2)),
+                -1])
         # UE subnetwork ________________________________________________________________________________________________
         # V_D path _____________________________________________________________________________________________________
         AdaSE_block_V_D_branch = []
@@ -1286,7 +1318,8 @@ class CNN_model_class():
         else:
             try:
                 AP_V_D_branch_end = MaxPooling3D(
-                pool_size=(1, round(current_size_V_dim_Nba / self.setup.N_b_rf), round(current_size_V_dim_Nba / self.setup.N_s)))
+                    pool_size=(1, round(current_size_V_dim_Nba / self.setup.N_b_rf),
+                               round(current_size_V_dim_Nba / self.setup.N_s)))
             except:
                 AP_V_D_branch_end = MaxPooling3D(
                     pool_size=(1, 1,
@@ -1360,7 +1393,8 @@ class CNN_model_class():
         current_size_W_dim_Nba = round(self.setup.N_b_a / (self.setup.N_b_a_strides_l1 * self.setup.N_b_a_strides_l2))
 
         AP_W_D_branch_end = MaxPooling3D(
-            pool_size=(1, int(current_size_W_dim_Nua / self.setup.N_u_rf), int(current_size_W_dim_Nua / self.setup.N_s)))
+            pool_size=(
+                1, int(current_size_W_dim_Nua / self.setup.N_u_rf), int(current_size_W_dim_Nua / self.setup.N_s)))
         reshaper_W_D = Reshape(target_shape=[self.setup.K_prime, self.setup.N_u_rf, self.setup.N_s, -1])
         for i in range(1, self.setup.n_post_Tconv_processing - 1, 1):
             AdaSE_ResNet_block_W_D_branch_post_Tconv_processing.append(
@@ -1388,9 +1422,10 @@ class CNN_model_class():
 
         # W_RF path-------------------
         AP_W_rf = MaxPooling3D(
-            pool_size=(round(self.setup.K_prime / (self.setup.subcarrier_strides_l1 * self.setup.subcarrier_strides_l2)),
-                       1,
-                       1))
+            pool_size=(
+                round(self.setup.K_prime / (self.setup.subcarrier_strides_l1 * self.setup.subcarrier_strides_l2)),
+                1,
+                1))
         reshaper_W_RF_begin = Reshape(
             target_shape=[round(self.setup.N_u_a / (self.setup.N_u_a_strides_l1 * self.setup.N_u_a_strides_l2)),
                           round(self.setup.N_b_a / (self.setup.N_b_a_strides_l1 * self.setup.N_b_a_strides_l2)),
@@ -1460,9 +1495,10 @@ class CNN_model_class():
 
         # V_RF path __________________________________________________________________________________________________
         AP_V_rf = MaxPooling3D(
-            pool_size=(round(self.setup.K_prime / (self.setup.subcarrier_strides_l1 * self.setup.subcarrier_strides_l2)),
-                       self.setup.Nue,
-                       1))
+            pool_size=(
+                round(self.setup.K_prime / (self.setup.subcarrier_strides_l1 * self.setup.subcarrier_strides_l2)),
+                self.setup.Nue,
+                1))
         reshaper_V_RF_begin = Reshape(
             target_shape=[round(self.setup.N_u_a / (self.setup.N_u_a_strides_l1 * self.setup.N_u_a_strides_l2)),
                           round(self.setup.N_b_a / (self.setup.N_b_a_strides_l1 * self.setup.N_b_a_strides_l2)),
@@ -1559,7 +1595,7 @@ class CNN_model_class():
         V_D_tmp = []
         W_D_tmp = []
         W_RF_tmp = []
-        for u in range(self.setup.Nue): # implementation of parameter-binding is through this loop
+        for u in range(self.setup.Nue):  # implementation of parameter-binding is through this loop
             # V_D path
             vd = AdaSE_block_V_D_branch[0](y[:, :, u, :, :], ns)
             for i in range(1, self.setup.n_D_and_RF_layers, 1):
@@ -1615,15 +1651,34 @@ class CNN_model_class():
         return func_model
 
     @tf.function
+    def quantize_angle_noise_simul(self, angle):
+        lower_bound = -math.pi / (2 ** self.setup.Nb)
+        upper_bound = math.pi / (2 ** self.setup.Nb)
+
+        return angle + tf.random.uniform(shape=tf.shape(angle), minval=lower_bound, maxval=upper_bound)
+
+    @tf.function
+    def quantize_angle_approx(self, angle):
+        angle = tf.math.mod(angle, 2 * tf.constant(math.pi, dtype=tf.float32))
+        if self.setup.Nb == math.inf:
+            return angle
+        num_segments = 2 ** self.setup.Nb
+        segment_size = 2 * tf.constant(math.pi, dtype=tf.float32) / tf.constant(num_segments, dtype=tf.float32)
+        segment = tf.math.floor(angle / segment_size)
+        steepness = 100.0  # Control the steepness of the tanh function
+        approx_segment = 0.5 * (tf.tanh(steepness * (angle / segment_size - segment)) + 1)
+        quantized_angle = segment_size * approx_segment
+        return quantized_angle
+
+    @tf.function
     def custom_activation_transmitter(self, inputs):
         V_D, vrf = inputs
 
         V_D_cplx = tf.complex(tf.cast(V_D[:, :, :, :, :, 0], tf.float32), tf.cast(V_D[:, :, :, :, :, 1], tf.float32))
-        vrf_cplx = tf.complex(tf.cast(tf.cos(vrf), tf.float32), tf.cast(tf.sin(vrf), tf.float32))
 
         # partially-connected analog beamformer matrix implementation ----------------
 
-        bundeled_inputs_0 = [V_D_cplx, vrf_cplx]
+        bundeled_inputs_0 = [V_D_cplx, vrf]
         V_D_new_cplx, V_RF_cplx = tf.map_fn(self.custorm_activation_per_sample_transmitter, bundeled_inputs_0,
                                             fn_output_signature=(tf.complex64, tf.complex64),
                                             parallel_iterations=self.setup.BATCHSIZE)
@@ -1631,10 +1686,13 @@ class CNN_model_class():
 
     @tf.function
     def custorm_activation_per_sample_transmitter(self, bundeled_inputs_0):
-        V_D_cplx, vrf_cplx = bundeled_inputs_0
+        V_D_cplx, vrf = bundeled_inputs_0
         # for BS
+        vrf_cplx = tf.complex(tf.cast(tf.cos(self.quantize_angle_approx(vrf)), tf.float32),
+                              tf.cast(tf.sin(self.quantize_angle_approx(vrf)), tf.float32))
         vrf_zero_padded = tf.concat([tf.reshape(vrf_cplx, shape=[self.setup.N_b_a, 1]),
-                                     tf.zeros(shape=[self.setup.N_b_a, self.setup.N_b_rf - 1], dtype=tf.complex64)], axis=1)
+                                     tf.zeros(shape=[self.setup.N_b_a, self.setup.N_b_rf - 1], dtype=tf.complex64)],
+                                    axis=1)
         r_bs = int(self.setup.N_b_a / self.setup.N_b_rf)
         T2_BS = []
         for i in range(self.setup.N_b_rf):
@@ -1651,7 +1709,8 @@ class CNN_model_class():
 
         V_D_cplx_normalized_per_sample = tf.map_fn(self.normalize_power_per_subcarrier_forall_UEs_transmitter,
                                                    bundeled_inputs_1,
-                                                   fn_output_signature=tf.complex64, parallel_iterations=self.setup.K_prime)
+                                                   fn_output_signature=tf.complex64,
+                                                   parallel_iterations=self.setup.K_prime)
         V_D_cplx_normalized_per_sample = tf.transpose(V_D_cplx_normalized_per_sample,
                                                       perm=[1, 0, 2, 3])  # UE, K, Nrf, Ns
 
@@ -1675,28 +1734,30 @@ class CNN_model_class():
     def custom_activation_receiver(self, inputs0):
         W_D, wrf = inputs0
         W_D_cplx = tf.complex(tf.cast(W_D[:, :, :, :, :, 0], tf.float32), tf.cast(W_D[:, :, :, :, :, 1], tf.float32))
-        wrf_cplx = tf.complex(tf.cast(tf.cos(wrf), tf.float32), tf.cast(tf.sin(wrf), tf.float32))
 
         # partially-connected analog beamformer matrix implementation ----------------
 
-        W_RF_cplx = tf.map_fn(self.custorm_activation_per_sample_receiver, wrf_cplx,
+        W_RF_cplx = tf.map_fn(self.custorm_activation_per_sample_receiver, wrf,
                               fn_output_signature=(tf.complex64),
                               parallel_iterations=self.setup.BATCHSIZE)
 
         return W_D_cplx, W_RF_cplx
 
     @tf.function
-    def custorm_activation_per_sample_receiver(self, wrf_cplx):
-        W_RF_cplx = tf.map_fn(self.custom_activation_per_UE, wrf_cplx,
-                              fn_output_signature=(tf.complex64),
-                              parallel_iterations=self.setup.Nue)
-        return W_RF_cplx
+    def custorm_activation_per_sample_receiver(self, wrf):
+        W_RF = tf.map_fn(self.custom_activation_per_UE, wrf,
+                         fn_output_signature=(tf.complex64),
+                         parallel_iterations=self.setup.Nue)
+        return W_RF
 
     @tf.function
-    def custom_activation_per_UE(self, wrf_cplx):
+    def custom_activation_per_UE(self, wrf):
         # for UE
+        wrf_cplx = tf.complex(tf.cast(tf.cos(self.quantize_angle_approx(wrf)), tf.float32),
+                              tf.cast(tf.sin(self.quantize_angle_approx(wrf)), tf.float32))
         wrf_zero_padded = tf.concat([tf.reshape(wrf_cplx, shape=[self.setup.N_u_a, 1]),
-                                     tf.zeros(shape=[self.setup.N_u_a, self.setup.N_u_rf - 1], dtype=tf.complex64)], axis=1)
+                                     tf.zeros(shape=[self.setup.N_u_a, self.setup.N_u_rf - 1], dtype=tf.complex64)],
+                                    axis=1)
         r_ue = int(self.setup.N_u_a / self.setup.N_u_rf)
         T2_UE = []
         for i in range(self.setup.N_u_rf):

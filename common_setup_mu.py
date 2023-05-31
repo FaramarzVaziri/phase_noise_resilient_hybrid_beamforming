@@ -62,7 +62,6 @@ class CommonSetUp():
                  , K
                  , K_prime
                  , PTRS_seperation
-                 , SNR
                  , P
                  , sigma2
                  , apply_channel_est_error
@@ -79,7 +78,8 @@ class CommonSetUp():
                  , sampling_ratio_subcarrier_domain_keep
                  , GMI_approx
                  , K_prime_size_test
-                 , influencial_subcarriers_set_size):
+                 , influencial_subcarriers_set_size
+                 , Nb):
         super(CommonSetUp, self).__init__()
 
         self.use_test_data_for_train = use_test_data_for_train
@@ -147,7 +147,6 @@ class CommonSetUp():
         self.K = K
         self.K_prime = K_prime
         self.PTRS_seperation = PTRS_seperation
-        self.SNR = SNR
         self.P = P
         self.sigma2 = sigma2
         self.apply_channel_est_error = apply_channel_est_error
@@ -166,13 +165,13 @@ class CommonSetUp():
         # file IDs
         self.simulation_ID = "N_ue_" + str(self.Nue) + "_N_b_a_" + str(self.N_b_a) + "_N_u_a_" + str(
             self.N_u_a) + "_N_b_rf_" + str(self.N_b_rf) + "_N_u_rf_" + str(self.N_u_rf) + "_N_s_" + str(
-            self.N_s) + "_L_" + str(int(self.L)) + "_SNR_" + str(int(self.SNR)) + "_K_" + str(
+            self.N_s) + "_L_" + str(int(self.L))  + "_K_" + str(
             self.K) + "_K_prime_" + str(self.K_prime) + "_M_" + str(self.M) + "_phase_noise_recorded_" + str(
             self.phase_noise_recorded) + "_" + str(self.CLO_or_ILO) + "_ch_est_err_var_dB_" + str(int(self.channel_est_err_mse_per_element_dB))
 
         self.model_ID = "N_ue_" + str(self.Nue) + "_N_b_a_" + str(self.N_b_a) + "_N_u_a_" + str(
             self.N_u_a) + "_N_b_rf_" + str(self.N_b_rf) + "_N_u_rf_" + str(self.N_u_rf) + "_N_s_" + str(
-            self.N_s) + "_L_" + str(int(self.L)) + "_SNR_" + str(int(self.SNR)) + "_K_" + str(
+            self.N_s) + "_L_" + str(int(self.L))  + "_K_" + str(
             self.K) + "_K_prime_" + str(self.K_prime) + "_M_" + str(self.M) + "_phase_noise_recorded_" + str(
             self.phase_noise_recorded) + "_" + str(self.CLO_or_ILO)
 
@@ -185,30 +184,30 @@ class CommonSetUp():
         self.dataset_for_running_benchmark = "datasets/DS_for_running_benchmark_" + "N_ue_" + str(
             self.Nue) + "_N_b_a_" + str(self.N_b_a) + "_N_u_a_" + str(self.N_u_a) + "_N_b_rf_" + str(
             self.N_b_rf) + "_N_u_rf_" + str(self.N_u_rf) + "_N_s_" + str(
-            self.N_s) + "_L_" + str(int(self.L)) + "_SNR_" + str(int(self.SNR)) + "_K_" + str(
+            self.N_s) + "_L_" + str(int(self.L))  + "_K_" + str(
             self.K) + "_K_prime_" + str(self.K_prime) + "_ch_est_err_var_dB_" + str(int(self.channel_est_err_mse_per_element_dB)) + ".mat"
         self.dataset_for_testing_sohrabi = "datasets/DS_for_testing_Sohrabi_" + "N_ue_" + str(
             self.Nue) + "_N_b_a_" + str(self.N_b_a) + "_N_u_a_" + str(self.N_u_a) + "_N_b_rf_" + str(
             self.N_b_rf) + "_N_u_rf_" + str(self.N_u_rf) + "_N_s_" + str(
-            self.N_s) + "_L_" + str(int(self.L)) + "_SNR_" + str(int(self.SNR)) + "_K_" + str(
+            self.N_s) + "_L_" + str(int(self.L))  + "_K_" + str(
             self.K) + "_K_prime_" + str(self.K_prime) + "_ch_est_err_var_dB_" + str(int(self.channel_est_err_mse_per_element_dB)) + ".mat"
         self.dataset_for_testing_DBF = self.dataset_for_testing_sohrabi
         self.dataset_for_testing_zilli = "datasets/DS_for_testing_Zilli_" + "N_ue_" + str(
             self.Nue) + "_N_b_a_" + str(self.N_b_a) + "_N_u_a_" + str(self.N_u_a) + "_N_b_rf_" + str(
             self.N_b_rf) + "_N_u_rf_" + str(self.N_u_rf) + "_N_s_" + str(
-            self.N_s) + "_L_" + str(int(self.L)) + "_SNR_" + str(int(self.SNR)) + "_K_" + str(
+            self.N_s) + "_L_" + str(int(self.L))  + "_K_" + str(
             self.K) + "_K_prime_" + str(self.K_prime) + "_ch_est_err_var_dB_" + str(
             int(self.channel_est_err_mse_per_element_dB)) + ".mat"
         self.dataset_for_testing_Dzhang = "datasets/DS_for_testing_Dzhang_" + "N_ue_" + str(
             self.Nue) + "_N_b_a_" + str(self.N_b_a) + "_N_u_a_" + str(self.N_u_a) + "_N_b_rf_" + str(
             self.N_b_rf) + "_N_u_rf_" + str(self.N_u_rf) + "_N_s_" + str(
-            self.N_s) + "_L_" + str(int(self.L)) + "_SNR_" + str(int(self.SNR)) + "_K_" + str(
+            self.N_s) + "_L_" + str(int(self.L))  + "_K_" + str(
             self.K) + "_K_prime_" + str(self.K_prime) + "_ch_est_err_var_dB_" + str(
             int(self.channel_est_err_mse_per_element_dB)) + ".mat"
         self.dataset_for_testing_Gonzales = "datasets/DS_for_testing_Gonzales_" + "N_ue_" + str(
             self.Nue) + "_N_b_a_" + str(self.N_b_a) + "_N_u_a_" + str(self.N_u_a) + "_N_b_rf_" + str(
             self.N_b_rf) + "_N_u_rf_" + str(self.N_u_rf) + "_N_s_" + str(
-            self.N_s) + "_L_" + str(int(self.L)) + "_SNR_" + str(int(self.SNR)) + "_K_" + str(
+            self.N_s) + "_L_" + str(int(self.L))  + "_K_" + str(
             self.K) + "_K_prime_" + str(self.K_prime) + "_ch_est_err_var_dB_" + str(
             int(self.channel_est_err_mse_per_element_dB)) + ".mat"
 
@@ -236,3 +235,4 @@ class CommonSetUp():
 
         self.K_prime_size_test = K_prime_size_test
         self.influencial_subcarriers_set_size = influencial_subcarriers_set_size
+        self.Nb = Nb

@@ -17,9 +17,9 @@ class Data_plotting_and_storing():
         self.ber_fcn = sionna.utils.BitErrorRate(name='bit_error_rate')
 
     @tf.function
-    def execute_for_Sohrabi(self):
+    def execute_for_benchmark(self):
         ber_fcn = sionna.utils.BitErrorRate(name='bit_error_rate')
-        air_samples, rx_symbols = self.obj_ML_model_post_training.evaluation_of_Sohrabis_beamformer(self.tx_bits, self.tx_symbols)
+        air_samples, rx_symbols = self.obj_ML_model_post_training.evaluation_of_benchmark_beamformer(self.tx_bits, self.tx_symbols)
 
         BER = []
         MSE = []
