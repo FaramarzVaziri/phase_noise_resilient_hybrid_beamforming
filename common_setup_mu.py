@@ -79,7 +79,8 @@ class CommonSetUp():
                  , GMI_approx
                  , K_prime_size_test
                  , influencial_subcarriers_set_size
-                 , Nb):
+                 , Nb
+                 , do_ps_quantization):
         super(CommonSetUp, self).__init__()
 
         self.use_test_data_for_train = use_test_data_for_train
@@ -236,3 +237,4 @@ class CommonSetUp():
         self.K_prime_size_test = K_prime_size_test
         self.influencial_subcarriers_set_size = influencial_subcarriers_set_size
         self.Nb = Nb
+        self.do_ps_quantization = do_ps_quantization

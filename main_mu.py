@@ -43,11 +43,11 @@ if __name__ == '__main__':
 
     # Control panel 2 (for normal use) ----------------------------------
     # training parameters
-    load_trained_best_model = 'no'
+    load_trained_best_model = 'yes'
     do_train = 'yes'
     save_model = 'yes'
     evaluate_model = 'no'
-    n_epochs = 5
+    n_epochs = 2
     validation_freq = 1
 
     # Benchmark methods
@@ -101,10 +101,10 @@ if __name__ == '__main__':
     elif mod_type == '64QAM':
         M = 64
 
-    N_s = 1
+    N_s = 1 # per user
     Nue = 4
-    N_b_a = 16
-    N_u_a = 4
+    N_b_a = 4
+    N_u_a = 2
     N_b_rf = 4
     N_u_rf = 1
     N_b_o = N_b_rf
@@ -113,7 +113,7 @@ if __name__ == '__main__':
     K_prime = 4  # size of the influencial subcarriers set
     PTRS_seperation = round(
         K_prime / 2)  # Separation between PTRS subcarriers. I abandoned the idea of refreshing RX CSI using PTRS (so it is not used)
-    E_tx_dBm_per_Hz = -55 # Power budget per subcarrier
+    E_tx_dBm_per_Hz = -65 # Power budget per subcarrier
     P = 10**((E_tx_dBm_per_Hz - 30.) / 10.)
     sigma2_dBm_per_Hz = -139
     sigma2 = 10**((sigma2_dBm_per_Hz - 30) / 10)
@@ -123,7 +123,7 @@ if __name__ == '__main__':
     # Phase noise parameters
     CSIRSPeriod = 20*14 # 20 subframes, 14 symbols per subframe
     f_0 = 100e3
-    L = -95
+    L = -85
     fs = 10 ** 9 / 65.104
     phase_noise_recorded = 'no'
     CLO_or_ILO = 'ILO'
@@ -134,8 +134,8 @@ if __name__ == '__main__':
     sampling_ratio_time_domain_keep_capacity_metric = sampling_ratio_time_domain_keep
     influencial_subcarriers_set_size = 4
 
-
-    Nb = 4 # phase shifter resolution in bits
+    do_ps_quantization = True
+    Nb = 8 # phase shifter resolution in bits
 
     # end of control panel ----------------------------------
 
@@ -216,7 +216,8 @@ if __name__ == '__main__':
                         , GMI_approx
                         , K_prime_size_test
                         , influencial_subcarriers_set_size
-                        , Nb)
+                        , Nb
+                        , do_ps_quantization)
 
     constellation = Constellation("qam", num_bits_per_symbol=round(np.log2(setup.M)), normalize=True, center=False)
     mapper = Mapper(constellation=constellation)

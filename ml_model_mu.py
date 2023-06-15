@@ -1,4 +1,5 @@
 import numpy as np
+import math
 import tensorflow as tf
 
 loss_metric = tf.keras.metrics.Mean(name='L2_train')
@@ -48,6 +49,53 @@ class ML_model_class(tf.keras.Model):
         return csi_tx, csi_rx
 
     @tf.function
+    def quantize_angle_noise_simul(self, angle):
+        lower_bound = -math.pi / (2 ** self.setup.Nb)
+        upper_bound = math.pi / (2 ** self.setup.Nb)
+
+        return angle + 100. * tf.random.uniform(shape=tf.shape(angle), minval=lower_bound, maxval=upper_bound)
+
+    @tf.function
+    def quantize_individual_angle(self, inputs):
+        angle, approx = inputs
+        angle = tf.math.mod(angle, 2 * tf.constant(math.pi, dtype=tf.float32))
+        if self.setup.Nb == math.inf:
+            return angle
+        num_segments = 2 ** self.setup.Nb
+        segment_size = 2 * tf.constant(math.pi, dtype=tf.float32) / tf.constant(num_segments, dtype=tf.float32)
+        segment = tf.math.floor(angle / segment_size)
+        if approx:
+            steepness = 10.0  # Control the steepness of the sigmoid function
+            approx_segment = -.5 + segment + (0.5 * (tf.tanh(steepness * (angle / segment_size - segment)) + 1))
+            quantized_angle = segment_size * approx_segment
+        else:
+            quantized_angle = segment_size * (segment + 0.5)
+        return quantized_angle
+
+    @tf.function
+    def quantize_Nrf_angles(self, inputs):
+        return tf.map_fn(self.quantize_individual_angle, inputs,
+                         fn_output_signature=(tf.float32))
+
+    @tf.function
+    def quantize_Nu_angles(self, inputs):
+        return tf.map_fn(self.quantize_Nrf_angles, inputs,
+                         fn_output_signature=(tf.float32))
+
+    @tf.function
+    def quantize_batch_of_angles_UE(self, inputs):
+        return tf.map_fn(self.quantize_Nu_angles, inputs,
+                         fn_output_signature=(tf.float32),
+                         parallel_iterations=self.setup.BATCHSIZE)
+
+    @tf.function
+    def quantize_batch_of_angles_BS(self, inputs):
+        return tf.map_fn(self.quantize_Nrf_angles, inputs,
+                         fn_output_signature=(tf.float32),
+                         parallel_iterations=self.setup.BATCHSIZE)
+
+
+    @tf.function
     def train_step(self, inputs0):
         _, H_complex, H_tilde, H_tilde_complex, Lambda_B, Lambda_U = inputs0
         csi_tx, csi_rx = self.NN_input_preparation(H_tilde)
@@ -69,6 +117,12 @@ class ML_model_class(tf.keras.Model):
 
             for ns in range(len(selected_symbols)):
                 V_D, V_RF, W_D, W_RF = self.CNN_transceiver([csi_tx, tf.tile([ns], multiples=[self.setup.BATCHSIZE])])
+                if self.setup.do_ps_quantization == True:
+                    V_RF = self.quantize_batch_of_angles_BS(
+                        [V_RF, tf.tile([[True]], multiples=[self.setup.BATCHSIZE, self.setup.N_b_a])])
+                    W_RF = self.quantize_batch_of_angles_UE(
+                        [W_RF, tf.tile([[[True]]], multiples=[self.setup.BATCHSIZE, self.setup.Nue, self.setup.N_u_a])])
+
                 V_D, V_RF = self.activation_TX([V_D, V_RF])
                 W_D, W_RF = self.activation_RX([W_D, W_RF])
 
@@ -125,6 +179,12 @@ class ML_model_class(tf.keras.Model):
         the_mask_of_ns = np.zeros(shape=self.setup.CSIRSPeriod, dtype=np.int32)
         for ns in range(len(selected_symbols)):
             V_D, V_RF, W_D, W_RF = self.CNN_transceiver([csi_tx, tf.tile([ns], multiples=[self.setup.BATCHSIZE])])
+            if self.setup.do_ps_quantization == True:
+                V_RF = self.quantize_batch_of_angles_BS(
+                    [V_RF, tf.tile([[True]], multiples=[self.setup.BATCHSIZE, self.setup.N_b_a])])
+                W_RF = self.quantize_batch_of_angles_UE(
+                    [W_RF, tf.tile([[[True]]], multiples=[self.setup.BATCHSIZE, self.setup.Nue, self.setup.N_u_a])])
+
             V_D, V_RF = self.activation_TX([V_D, V_RF])
             W_D, W_RF = self.activation_RX([W_D, W_RF])
             V_D_tmp.append(V_D)
@@ -160,6 +220,12 @@ class ML_model_class(tf.keras.Model):
 
         for ns in range(len(selected_symbols)):
             V_D_, V_RF_, W_D_, W_RF_ = self.CNN_transceiver([csi_tx, tf.tile([ns], multiples=[self.setup.BATCHSIZE])])
+            if self.setup.do_ps_quantization == True:
+                V_RF_ = self.quantize_batch_of_angles_BS(
+                    [V_RF_, tf.tile([[True]], multiples=[self.setup.BATCHSIZE, self.setup.N_b_a])])
+                W_RF_ = self.quantize_batch_of_angles_UE(
+                    [W_RF_, tf.tile([[[True]]], multiples=[self.setup.BATCHSIZE, self.setup.Nue, self.setup.N_u_a])])
+
             V_D_, V_RF_ = self.activation_TX([V_D_, V_RF_])
             W_D_, W_RF_ = self.activation_RX([W_D_, W_RF_])
             V_D_tmp_.append(V_D_)
@@ -213,6 +279,12 @@ class ML_model_class(tf.keras.Model):
 
             for ns in range(len(selected_symbols)):
                 V_D, V_RF, W_D, W_RF = self.CNN_transceiver([csi_tx, tf.tile([ns], multiples=[self.setup.BATCHSIZE])])
+                if self.setup.do_ps_quantization == True:
+                    V_RF = self.quantize_batch_of_angles_BS(
+                        [V_RF, tf.tile([[False]], multiples=[self.setup.BATCHSIZE, self.setup.N_b_a])])
+                    W_RF = self.quantize_batch_of_angles_UE(
+                        [W_RF, tf.tile([[[False]]], multiples=[self.setup.BATCHSIZE, self.setup.Nue, self.setup.N_u_a])])
+
                 V_D, V_RF = self.activation_TX([V_D, V_RF])
                 W_D, W_RF = self.activation_RX([W_D, W_RF])
                 V_D_tmp.append(V_D)
